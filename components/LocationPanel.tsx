@@ -3,6 +3,7 @@
 import { formatCoordinates } from "@/lib/locations";
 import { formatHour, formatSeasonalDate } from "@/lib/seasonalTime";
 import { useExplorationStore } from "@/state/explorationStore";
+import { HistoricalWeather } from "@/components/HistoricalWeather";
 
 export function LocationPanel() {
   const location = useExplorationStore((state) => state.selectedLocation);
@@ -22,13 +23,14 @@ export function LocationPanel() {
         <p className="location-coordinates">⌖ {formatCoordinates(location.latitude, location.longitude)}</p>
       </div>
       <div className="location-selected-time"><span>Selected seasonal time</span><strong>{formatSeasonalDate(day)} · {formatHour(hour)}</strong><small>Local hour at the selected location</small></div>
+      <HistoricalWeather />
       <details className="location-details">
         <summary>Location details</summary>
+        <p className="location-detail-coordinates">{formatCoordinates(location.latitude, location.longitude)}</p>
         {(location.elevation !== undefined || location.timezone) && <dl className="location-facts">
           {location.elevation !== undefined && <div><dt>Elevation</dt><dd>{Math.round(location.elevation).toLocaleString()} m</dd></div>}
           {location.timezone && <div><dt>Time zone</dt><dd>{location.timezone.replaceAll("_", " ")}</dd></div>}
         </dl>}
-      <div className="location-next"><span aria-hidden="true">◷</span><p><strong>Every place has a season.</strong>Historical weather and seasonal charts are coming next.</p></div>
       <p className="location-source">{location.source === "search" ? "City location · Open-Meteo / GeoNames" : location.source === "map" ? "Coordinates selected on the map" : "Coordinates entered in search"}</p>
       </details>
     </section>

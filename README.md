@@ -3,8 +3,8 @@
 An interactive globe of Earth, evolving into the SeasonAtlas weather explorer.
 Explore physical geography, coastlines, rivers, lakes, country borders and terrain.
 Search for a city, select a map location and choose a seasonal day and hour.
-The existing Globebase geography forms the foundation; weather data and overlays
-are planned in the development phases below.
+The existing Globebase geography forms the foundation, with historical weather
+averages for selected locations. Map-wide weather overlays are planned below.
 
 ## SeasonAtlas design reference
 
@@ -173,18 +173,18 @@ The Paris values above are illustrative metrics, not measured weather data.
 
 **Sprint 1 — Functional foundation**
 
-The supplied planning checklist starts at **0/9 complete**; confirm existing
-capabilities when beginning the sprint.
+**9/9 complete.** The functional foundation now includes location search, time
+selection and validated historical point-weather averages.
 
-- [ ] Identify the existing map renderer and tile sources.
-- [ ] Extract map view state (centre, zoom, pitch and bearing).
-- [ ] Build the SeasonAtlas header and floating search.
-- [ ] Add day-of-year and hour sliders.
-- [ ] Create a shared time and selected-location state.
-- [ ] Connect location clicks to Open-Meteo historical weather.
-- [ ] Display temperature, wind and precipitation in a floating panel.
-- [ ] Add loading, empty and error states.
-- [ ] Validate selected weather averages against source data.
+- [x] Identify the existing map renderer and tile sources.
+- [x] Extract map view state (centre, zoom, pitch and bearing).
+- [x] Build the SeasonAtlas header and floating search.
+- [x] Add day-of-year and hour sliders.
+- [x] Create a shared time and selected-location state.
+- [x] Connect location clicks to Open-Meteo historical weather.
+- [x] Display temperature, wind and precipitation in a floating panel.
+- [x] Add loading, empty and error states.
+- [x] Validate selected weather averages against source data.
 
 ### 7. Priorities and milestones
 
@@ -228,8 +228,17 @@ panel reflects the same selected time. Play advances two days per second at 1×;
 2× and 4× increase that rate while retaining the selected hour. Playback wraps
 from 31 December to 1 January, pauses when the tab is hidden, and stops when you
 manually select a day or hour. Season labels use Europe's meteorological seasons.
-The selection does not yet change terrain or display historical weather; weather
-data and charts are planned for the next phase.
+The location panel shows historical average temperature, 10 m wind speed and
+preceding-hour precipitation for the selected time. **2015–2024** is the averaging
+period, using the **same local hour across the selected date ±7 days**. These are
+historical model averages, not a current forecast. Expand **About these averages**
+for model resolution, grid coordinates, time zone and the averaging method.
+
+A new location/month loads historical records once; changing the hour or day
+within that month uses the downloaded averages. Playback pauses when an uncached
+month needs data. First lookups may take up to 90 seconds; loading, missing-data
+coverage and retry states appear in the panel. Mobile panels scroll to reveal
+additional details. Weather overlays and annual charts remain future work.
 
 Use the **2D / 3D** control at the upper right to switch between a Mercator map
 and the globe. The current location, zoom and layers stay in place; switching
@@ -287,6 +296,8 @@ profile `globebase-r2`, overridable with `R2_PROFILE`.
 - `state/explorationStore.ts`: serializable camera and selected-location state.
 - `lib/locations.ts`: city geocoding, suggested cities and coordinate parsing.
 - `lib/seasonalTime.ts`: yearless calendar, season labels and time formatting.
+- `lib/weather/`: validated ERA5 records, DST-aware averaging and bounded caches.
+- `app/api/weather/`: historical monthly weather endpoint.
 - `public/geo/`: locally hosted Natural Earth geography and vector tiles.
 - `scripts/`: reproducible geography preparation, biome generation and checks.
 
@@ -297,6 +308,35 @@ on `moveend`; camera snapshots do not drive the camera back. Explicit city or
 coordinate selections trigger a separate flight to the selected location.
 
 ## Data and attribution
+
+Historical weather comes from [Open-Meteo's archive API](https://open-meteo.com/en/docs/historical-weather-api),
+pinned to **ERA5**, with [Copernicus ERA5](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels)
+attribution. Derived averages retain [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+credit. ERA5's native grid is 0.25° (approximately 25 km); map zoom adds no weather
+detail. The nearest grid cell is requested with elevation downscaling disabled.
+Temperature is in °C, wind in km/h, and precipitation in mm over the preceding
+hour (including dry hours, not rain probability).
+
+Weather timestamps are requested as Unix seconds and converted using the returned
+IANA time zone's historical rules. Repeated daylight-saving hours are averaged
+within each year before averaging across year-day samples; skipped hours and
+null values are excluded, with coverage shown when incomplete. February 29 is
+omitted. January/December smoothing wraps within the same ten baseline years.
+The baseline, model and window are configured in `lib/weather/climate.ts`.
+
+Weather needs the running Next.js server and network access. Raw date ranges use
+Next.js fetch caching for 30 days; derived months use a bounded 48-entry process
+cache for seven days and a 24-entry browser-session cache. HTTP results cache for
+one day in the browser and seven days in shared caches. Identical in-flight
+lookups are shared, no more than two different months build concurrently, and
+upstream request starts are paced. Errors are not cached. Process/session caches
+reset on restart; hosting platforms may impose shorter execution limits than the
+120-second route budget. A shared persistent atlas/job service is needed before
+scaling this point-lookup prototype to large public traffic or map overlays.
+
+The default Open-Meteo endpoint is for non-commercial prototyping and has
+[usage limits](https://open-meteo.com/en/pricing). Commercial deployment requires
+an appropriate provider plan and endpoint configuration.
 
 City search uses [Open-Meteo geocoding](https://open-meteo.com/en/docs/geocoding-api)
 with location data from [GeoNames](https://www.geonames.org/). Entered coordinates
@@ -333,6 +373,7 @@ pnpm lint
 pnpm build
 node scripts/check-geography.mjs
 node scripts/check-hillshade.mjs
+node scripts/check-weather.mjs
 ```
 
 `node scripts/check-biomes.mjs` additionally validates a generated biome pyramid
