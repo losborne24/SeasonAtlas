@@ -1,10 +1,10 @@
 # SeasonAtlas
 
 An interactive globe of Earth, evolving into the SeasonAtlas weather explorer.
-Explore physical geography,
-coastlines, rivers, lakes, country borders and terrain without a historical timeline
-or preselected landmarks. Globebase is a foundation for world-based
-experiences; its current physical geography forms the foundation for SeasonAtlas.
+Explore physical geography, coastlines, rivers, lakes, country borders and terrain.
+Search for a city, select a map location and choose a seasonal day and hour.
+The existing Globebase geography forms the foundation; weather data and overlays
+are planned in the development phases below.
 
 ## SeasonAtlas design reference
 
@@ -220,7 +220,16 @@ use Open-Meteo geocoding and require a network connection. Click or tap the map
 to select any coordinate. A marker and floating panel show the selected location;
 on phones the panel sits at the bottom. Close the panel to clear the selection.
 City results include elevation and time zone when supplied by the geocoder.
-Historical weather and seasonal charts are planned, as described above.
+
+The bottom seasonal timeline selects a day in a yearless **365-day calendar**
+(no leap day) and a separate **local hour, 00:00–23:00**. Drag either slider, use
+its arrow keys, jump to a month, or step one day backward or forward. The location
+panel reflects the same selected time. Play advances two days per second at 1×;
+2× and 4× increase that rate while retaining the selected hour. Playback wraps
+from 31 December to 1 January, pauses when the tab is hidden, and stops when you
+manually select a day or hour. Season labels use Europe's meteorological seasons.
+The selection does not yet change terrain or display historical weather; weather
+data and charts are planned for the next phase.
 
 Use the **2D / 3D** control at the upper right to switch between a Mercator map
 and the globe. The current location, zoom and layers stay in place; switching
@@ -277,6 +286,7 @@ profile `globebase-r2`, overridable with `R2_PROFILE`.
   optional biome rasters.
 - `state/explorationStore.ts`: serializable camera and selected-location state.
 - `lib/locations.ts`: city geocoding, suggested cities and coordinate parsing.
+- `lib/seasonalTime.ts`: yearless calendar, season labels and time formatting.
 - `public/geo/`: locally hosted Natural Earth geography and vector tiles.
 - `scripts/`: reproducible geography preparation, biome generation and checks.
 

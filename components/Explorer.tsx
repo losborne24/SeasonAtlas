@@ -7,6 +7,7 @@ import { useState, useSyncExternalStore } from "react";
 import { TopBar } from "@/components/TopBar";
 import { LocationSearch } from "@/components/LocationSearch";
 import { LocationPanel } from "@/components/LocationPanel";
+import { SeasonalTimeline } from "@/components/SeasonalTimeline";
 import {
   ErrorOverlay,
   LoadingOverlay,
@@ -42,6 +43,7 @@ export function Explorer() {
       <TopBar />
       <LocationSearch />
       <LocationPanel />
+      <SeasonalTimeline />
 
       {/* States (topmost) */}
       {webglSupported === null && <LoadingOverlay />}

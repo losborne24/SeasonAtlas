@@ -37,7 +37,7 @@ export function MapReadout({ map }: { map: Map | null }) {
   if (!readout) return null;
 
   return (
-    <div className="pointer-events-none hidden sm:block absolute bottom-10 left-3 z-10 rounded-md border border-panel-border bg-panel px-3 py-2 font-mono text-[11px] tabular-nums text-white/60 backdrop-blur-md sm:bottom-10 sm:left-6">
+    <div className="map-readout pointer-events-none hidden sm:block absolute bottom-10 left-3 z-10 rounded-md border border-panel-border bg-panel px-3 py-2 font-mono text-[11px] tabular-nums text-white/60 backdrop-blur-md sm:bottom-10 sm:left-6">
       {readout}
     </div>
   );
