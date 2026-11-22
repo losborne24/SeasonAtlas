@@ -17,6 +17,9 @@ pnpm dev             # http://localhost:3000
 Drag to explore, scroll to zoom, and use the navigation control to adjust the
 camera. Open **Globe settings** to adjust terrain exaggeration and hillshade.
 The initial camera looks toward the equator at the prime meridian.
+Use the **2D / 3D** control at the upper right to switch between a Mercator map
+and the globe. The current location, zoom and layers stay in place; switching
+to 2D also resets tilt and bearing for a north-up map.
 
 **Urban areas** are enabled by default in Globe settings. Muted warm-grey
 settlement footprints fade in between zooms 2 and 5, above biomes and below

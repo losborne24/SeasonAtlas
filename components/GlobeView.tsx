@@ -27,6 +27,7 @@ import {
 } from "@/map/mapStyle";
 import { DebugPanel } from "@/components/DebugPanel";
 import { MapReadout } from "@/components/MapReadout";
+import { ProjectionToggle } from "@/components/ProjectionToggle";
 import { queryTerrainHeights } from "@/map/terrain";
 import { attachCoastlineDetail } from "@/map/coastlineDetail";
 import { useExplorationStore } from "@/state/explorationStore";
@@ -134,6 +135,7 @@ export default function GlobeView({ onStatus }: GlobeViewProps) {
     <>
       <div ref={containerRef} className="h-full w-full" aria-hidden />
       <MapReadout map={debugMap} />
+      <ProjectionToggle map={debugMap} />
       <DebugPanel
         map={debugMap}
         terrainWarning={terrainWarning}
