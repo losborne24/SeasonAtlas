@@ -18,6 +18,11 @@ Drag to explore, scroll to zoom, and use the navigation control to adjust the
 camera. Open **Globe settings** to adjust terrain exaggeration and hillshade.
 The initial camera looks toward the equator at the prime meridian.
 
+**Urban areas** are enabled by default in Globe settings. Muted warm-grey
+settlement footprints fade in between zooms 2 and 5, above biomes and below
+coastlines, rivers and lakes. These are generalised urban extents, without
+individual buildings or city labels.
+
 The base globe needs no account, backend, generated biome tiles or API key.
 Mapterhorn elevation tiles load over the network; unavailable elevation does
 not prevent navigation or the local physical geography from rendering.
@@ -73,6 +78,18 @@ Natural Earth v5.1.2 provides local 50m global land, lakes and rivers, with 10m
 regional coastlines loaded as vector tiles. Natural Earth is public domain;
 Globebase retains voluntary attribution. See the [vendored data notes](public/geo/natural-earth-v5.1.2/README.md)
 for provenance and reproducible preparation.
+
+Natural Earth urban areas (dataset v4.0.0, vendored from the pinned v5.1.2
+repository) add 11,878 settlement footprints as 341 local vector tiles at
+zooms 0–4, totalling approximately 3.9 MB. Only visible tiles are requested;
+closer zooms reuse z4. The source describes these outlines as derived from
+2002–2003 MODIS imagery at 1 km resolution: they do not represent current
+urban growth or precise building boundaries. See the
+[dataset description](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-urban-area/).
+Rebuild with `node scripts/prepare-urban-areas.mjs` (or pass a local original
+GeoJSON path). The script verifies the upstream SHA-256 and uses existing
+MapLibre tiling dependencies; it adds no packages. Provenance and checksum
+are in the vendored data notes.
 
 Mapterhorn supplies remote Terrarium elevation tiles through native zoom 12,
 with attribution retained in the map. Terrain defaults to 1× elevation.

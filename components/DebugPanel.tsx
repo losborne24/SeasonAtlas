@@ -6,6 +6,7 @@ import {
   DEFAULT_TERRAIN_EXAGGERATION,
   TERRAIN_EXAGGERATIONS,
   TERRAIN_SOURCE,
+  URBAN_LAYER,
 } from "@/map/mapStyle";
 
 import {
@@ -28,6 +29,7 @@ export function DebugPanel({ map, terrainWarning, onRetryTerrain }: DebugPanelPr
   const [globalHillshadeStrength, setGlobalHillshadeStrength] = useState(DEFAULT_GLOBAL_HILLSHADE_STRENGTH);
   const [biomesEnabled, setBiomesEnabled] = useState(Boolean(BIOME_BASE_URL));
   const [biomeWarning, setBiomeWarning] = useState("");
+  const [urbanEnabled, setUrbanEnabled] = useState(true);
 
   useEffect(() => {
     if (!map || !biomesEnabled) return;
@@ -57,6 +59,15 @@ export function DebugPanel({ map, terrainWarning, onRetryTerrain }: DebugPanelPr
       <summary className="cursor-pointer tracking-wide">Globe settings</summary>
       <fieldset disabled={!map} className="disabled:opacity-50">
         <legend className="mt-3 text-white/40">Terrain</legend>
+        <label className="mt-3 flex items-center gap-2">
+          <input type="checkbox" checked={urbanEnabled} onChange={(event) => {
+            const enabled = event.target.checked;
+            map?.setLayoutProperty(URBAN_LAYER, "visibility", enabled ? "visible" : "none");
+            setUrbanEnabled(enabled);
+          }} />
+          Urban areas
+        </label>
+        <p className="mt-1 text-white/40">Generalised settlement footprints · Natural Earth</p>
         <label className="mt-3 flex items-center justify-between gap-3">
           Elevation exaggeration
           <select

@@ -1,4 +1,23 @@
-# Globebase physical geography
+# Globebase geography
+
+## Urban areas
+
+`urban-10m/{z}/{x}/{y}.pbf` contains Natural Earth urban areas v4.0.0 from
+repository revision `f1890d9f152c896d250a77557a5751a93d494776` (v5.1.2).
+Upstream file: `geojson/ne_10m_urban_areas.geojson`.
+Upstream SHA-256: `5136ffd816a9b28c0f295e6797b4c03eaa421be80d78b90f542db4a932dd4497`.
+
+Public domain, like the physical geography. Source description:
+https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-urban-area/
+The publisher describes 2002–2003 MODIS imagery at 1 km resolution; these are
+generalised settlement extents, not present-day coverage or individual buildings.
+
+`node scripts/prepare-urban-areas.mjs [original.geojson]` strips feature
+properties and tiles the 11,878 source features with MapLibre's GeoJSONVT:
+zooms 0–4, extent 8192, buffer 64, tolerance 1; zero-area rings collapsed by quantisation are removed. All 341 tiles (including valid
+empty tiles) are stored, totalling 3,839,951 bytes. MapLibre overzooms above z4.
+The layer appears above land/biomes and below coastlines/rivers/lakes; source
+shoreline generalisation can differ from the physical base.
 
 Source: Natural Earth vector release **v5.1.2**, pinned to commit
 [`f1890d9f152c896d250a77557a5751a93d494776`](https://github.com/nvkelso/natural-earth-vector/tree/f1890d9f152c896d250a77557a5751a93d494776/geojson).

@@ -10,6 +10,8 @@ import type { GlobeView } from "@/state/explorationStore";
 
 const GEOGRAPHY_ROOT = "/geo/natural-earth-v5.1.2";
 export const TERRAIN_SOURCE = "physical-elevation";
+export const URBAN_SOURCE = "urban-areas";
+export const URBAN_LAYER = "urban-areas-fill";
 export const DEFAULT_TERRAIN_EXAGGERATION = 1;
 export const TERRAIN_EXAGGERATIONS = [1, 1.5, 2, 2.5] as const;
 export const REGIONAL_LAND_SOURCE = "physical-land-regional";
@@ -114,6 +116,13 @@ export function createGlobeStyle(): StyleSpecification {
       ],
     },
     sources: {
+      [URBAN_SOURCE]: {
+        type: "vector",
+        tiles: [`${GEOGRAPHY_ROOT}/urban-10m/{z}/{x}/{y}.pbf`],
+        minzoom: 0,
+        maxzoom: 4,
+        attribution: GEO_ATTRIBUTION,
+      },
       // https://mapterhorn.com/data-access/ — Terrarium, NOT Mapbox Terrain RGB.
       [TERRAIN_SOURCE]: {
         type: "raster-dem",
@@ -184,6 +193,17 @@ export function createGlobeStyle(): StyleSpecification {
           "fill-antialias": false,
           "fill-opacity": detail,
           "fill-opacity-transition": { duration: 300 },
+        },
+      },
+      {
+        id: URBAN_LAYER,
+        type: "fill",
+        source: URBAN_SOURCE,
+        "source-layer": "urban",
+        minzoom: 2,
+        paint: {
+          "fill-color": "#a2a18e",
+          "fill-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0, 3, 0.12, 5, 0.3],
         },
       },
       {

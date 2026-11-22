@@ -48,6 +48,7 @@ let compressed = 0;
 for (const [id, source] of Object.entries(style.sources)) {
   if (id === style.terrain.source) continue;
   if (id === "physical-land-regional") continue;
+  if (id === "urban-areas") continue; // Urban vector tiles checked separately below.
   assert.equal(source.type, "geojson");
   if (id === "graticule") continue;
   assert.ok(source.data.startsWith("/geo/natural-earth-v5.1.2/"));
@@ -98,6 +99,34 @@ console.log(`Style valid; 30° grid valid; geography ${bytes} bytes (${compresse
 // Decode every regional tile: shared vertices, complementary masks, no clip-edge outlines.
 const { VectorTile } = await import(require.resolve("@mapbox/vector-tile"));
 const { PbfReader } = await import(require.resolve("pbf"));
+const urbanSource = style.sources["urban-areas"];
+assert.equal(urbanSource.type, "vector");
+assert.equal(urbanSource.maxzoom, 4);
+const urbanLayer = style.layers.find(({ id }) => id === "urban-areas-fill");
+assert.equal(urbanLayer["source-layer"], "urban");
+for (const water of ["coastline", "rivers", "lakes"]) {
+  assert.ok(style.layers.indexOf(urbanLayer) < style.layers.findIndex(({ id }) => id === water));
+}
+let urbanBytes = 0;
+let urbanFeatures = 0;
+for (let z = 0; z <= 4; z++) for (let x = 0; x < 2 ** z; x++) for (let y = 0; y < 2 ** z; y++) {
+  const raw = await readFile(new URL(`../public/geo/natural-earth-v5.1.2/urban-10m/${z}/${x}/${y}.pbf`, import.meta.url));
+  urbanBytes += raw.length;
+  const layer = new VectorTile(new PbfReader(raw)).layers.urban;
+  if (!layer) continue;
+  for (let i = 0; i < layer.length; i++) {
+    const feature = layer.feature(i);
+    assert.equal(feature.type, 3);
+    for (const ring of feature.loadGeometry()) {
+      assert.ok(ring.length >= 4);
+      assert.deepEqual(ring[0], ring.at(-1));
+    }
+    urbanFeatures++;
+  }
+}
+assert.ok(urbanFeatures > 10_000);
+assert.ok(urbanBytes < 5_000_000);
+console.log(`341 urban tiles valid: ${urbanBytes} bytes; polygons render below coastlines and water.`);
 const { default: earcut, deviation } = await import(require.resolve("earcut"));
 const regional = style.sources["physical-land-regional"];
 assert.equal(regional.type, "vector");
