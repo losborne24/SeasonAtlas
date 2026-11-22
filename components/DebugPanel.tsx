@@ -55,7 +55,7 @@ export function DebugPanel({ map, terrainWarning, onRetryTerrain }: DebugPanelPr
   }, [map, globalHillshadeStrength, hillshadeIntensity]);
 
   return (
-    <details className="absolute top-16 left-4 z-20 w-56 rounded-lg border border-panel-border bg-panel p-3 text-xs text-white/70 backdrop-blur-md sm:left-6">
+    <details className="globe-settings absolute z-20 w-56 rounded-lg border border-panel-border bg-panel p-3 text-xs text-white/70 backdrop-blur-md">
       <summary className="cursor-pointer tracking-wide">Globe settings</summary>
       <fieldset disabled={!map} className="disabled:opacity-50">
         <legend className="mt-3 text-white/40">Terrain</legend>

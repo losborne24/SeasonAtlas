@@ -1,9 +1,10 @@
-# Globebase
+# SeasonAtlas
 
-A subject-agnostic, interactive globe of Earth. Explore physical geography,
+An interactive globe of Earth, evolving into the SeasonAtlas weather explorer.
+Explore physical geography,
 coastlines, rivers, lakes, country borders and terrain without a historical timeline
 or preselected landmarks. Globebase is a foundation for world-based
-experiences; the base globe makes no assumptions about their subject matter.
+experiences; its current physical geography forms the foundation for SeasonAtlas.
 
 ## SeasonAtlas design reference
 
@@ -211,6 +212,16 @@ pnpm dev             # http://localhost:3000
 Drag to explore, scroll to zoom, and use the navigation control to adjust the
 camera. Open **Globe settings** to adjust terrain exaggeration and hillshade.
 The initial camera looks toward the equator at the prime meridian.
+
+Use the floating search to find cities or enter **latitude, longitude** (for
+example, `48.8566, 2.3522`). Search supports arrow keys, Enter to select and Escape
+to dismiss. Suggested cities are available before typing; other city searches
+use Open-Meteo geocoding and require a network connection. Click or tap the map
+to select any coordinate. A marker and floating panel show the selected location;
+on phones the panel sits at the bottom. Close the panel to clear the selection.
+City results include elevation and time zone when supplied by the geocoder.
+Historical weather and seasonal charts are planned, as described above.
+
 Use the **2D / 3D** control at the upper right to switch between a Mercator map
 and the globe. The current location, zoom and layers stay in place; switching
 to 2D also resets tilt and bearing for a north-up map.
@@ -264,16 +275,22 @@ profile `globebase-r2`, overridable with `R2_PROFILE`.
   rendering diagnostics and loading/error states.
 - `map/`: MapLibre style, coastline detail, physical terrain, hillshade and
   optional biome rasters.
-- `state/explorationStore.ts`: serializable camera state, independent of datasets.
+- `state/explorationStore.ts`: serializable camera and selected-location state.
+- `lib/locations.ts`: city geocoding, suggested cities and coordinate parsing.
 - `public/geo/`: locally hosted Natural Earth geography and vector tiles.
 - `scripts/`: reproducible geography preparation, biome generation and checks.
 
 MapLibre owns the globe and WebGL lifecycle. Its worker is emitted as a bundled
 asset through a static `new URL(...)` reference. Runtime renderer objects stay
 outside shared application state. Camera changes are mirrored into the store
-on `moveend`; the store does not drive the camera back.
+on `moveend`; camera snapshots do not drive the camera back. Explicit city or
+coordinate selections trigger a separate flight to the selected location.
 
 ## Data and attribution
+
+City search uses [Open-Meteo geocoding](https://open-meteo.com/en/docs/geocoding-api)
+with location data from [GeoNames](https://www.geonames.org/). Entered coordinates
+and map clicks do not need the geocoding service.
 
 Natural Earth v5.1.2 provides local 50m global land, lakes and rivers, with 10m
 regional coastlines loaded as vector tiles. Natural Earth is public domain;

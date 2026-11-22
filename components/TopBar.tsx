@@ -1,18 +1,22 @@
 "use client";
 
-/** Identity and navigation hints for the world globe. */
 export function TopBar() {
   return (
-    <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
-      <div className="flex items-baseline gap-3 select-none">
-        <h1 className="text-sm font-semibold tracking-[0.25em] text-white sm:text-base">
-          GLOBEBASE
-        </h1>
-        <span className="hidden text-[10px] uppercase tracking-widest text-white/40 sm:inline">
-          Explore Earth
-        </span>
+    <header className="season-header">
+      <div className="season-brand">
+        <svg viewBox="0 0 44 44" fill="none" aria-hidden="true">
+          <circle cx="22" cy="22" r="20" stroke="currentColor" strokeWidth="1.5" />
+          <path d="m6 30 10-14 7 9 5-6 10 11H6Z" fill="currentColor" fillOpacity=".18" />
+          <path d="m6 30 10-14 7 9 5-6 10 11M12 35h20" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <circle cx="30" cy="12" r="2.5" fill="currentColor" />
+        </svg>
+        <div>
+          <h1>SeasonAtlas</h1>
+          <p>A world to explore. A season to discover.</p>
+        </div>
       </div>
-      <p className="hidden pr-10 text-xs text-white/50 sm:block">Drag to explore · Scroll to zoom</p>
+      <div className="explore-badge"><span aria-hidden="true">◎</span> Explore</div>
+      <p className="season-header-hint">Drag to explore <span>·</span> Scroll to zoom</p>
     </header>
   );
 }

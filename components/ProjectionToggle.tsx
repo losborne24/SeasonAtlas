@@ -17,7 +17,7 @@ export function ProjectionToggle({ map }: { map: Map | null }) {
   }
 
   return (
-    <div role="group" aria-label="Map view" className="absolute right-4 top-28 z-20 flex rounded-full border border-panel-border bg-panel p-1 text-xs backdrop-blur-md sm:right-6">
+    <div role="group" aria-label="Map view" className="projection-toggle absolute z-20 flex rounded-full border border-panel-border bg-panel p-1 text-xs backdrop-blur-md">
       {([
         ["mercator", "2D", "2D map"],
         ["globe", "3D", "3D globe"],

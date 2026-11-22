@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import { useState, useSyncExternalStore } from "react";
 
 import { TopBar } from "@/components/TopBar";
+import { LocationSearch } from "@/components/LocationSearch";
+import { LocationPanel } from "@/components/LocationPanel";
 import {
   ErrorOverlay,
   LoadingOverlay,
@@ -32,12 +34,14 @@ export function Explorer() {
   };
 
   return (
-    <main className="relative h-full w-full overflow-hidden bg-background">
+    <main className="season-explorer relative h-full w-full overflow-hidden bg-background">
       {/* Globe layer */}
       {webglSupported === true && <GlobeView onStatus={handleStatus} />}
 
       {/* Interface */}
       <TopBar />
+      <LocationSearch />
+      <LocationPanel />
 
       {/* States (topmost) */}
       {webglSupported === null && <LoadingOverlay />}
