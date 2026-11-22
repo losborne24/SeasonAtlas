@@ -1,6 +1,6 @@
 /**
  * Static physical geography, palette, atmosphere and camera conversion.
- * Local Natural Earth data is independent of historical timeline state.
+ * Local Natural Earth data provides the physical geography baseline.
  * Mapterhorn DEM stays independent of the Natural Earth surface layers.
  */
 
@@ -92,7 +92,7 @@ const palette = {
 export function createGlobeStyle(): StyleSpecification {
   return {
     version: 8,
-    name: "mankind-historical-globe",
+    name: "globebase-world",
     projection: { type: "globe" },
     terrain: { source: TERRAIN_SOURCE, exaggeration: DEFAULT_TERRAIN_EXAGGERATION },
     sky: {
@@ -270,13 +270,6 @@ export function createGlobeStyle(): StyleSpecification {
     ],
   };
 }
-
-/**
- * A fixed, well-known anchor for the Phase-1 Three.js test object: the Giza
- * plateau in Egypt (≈ 29.9792 °N, 31.1342 °E) — fitting for a world that opens
- * in 3000 BCE. Used to verify geographic anchoring of 3D geometry.
- */
-export const TEST_MARKER_LNGLAT: readonly [number, number] = [31.1342, 29.9792];
 
 /** Convert a {@link GlobeView} into MapLibre camera options. */
 export function viewToCamera(view: GlobeView) {

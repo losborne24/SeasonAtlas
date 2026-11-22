@@ -17,7 +17,7 @@ PREFIX=${2:-}
 CONFIRM=${3:-}
 : "${R2_BUCKET:?Set R2_BUCKET to the target bucket name}"
 : "${R2_ACCOUNT_ID:?Set R2_ACCOUNT_ID to your Cloudflare account id}"
-PROFILE=${R2_PROFILE:-mankind-r2}
+PROFILE=${R2_PROFILE:-globebase-r2}
 ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
 
 if [[ -z $SOURCE || -z $PREFIX ]]; then

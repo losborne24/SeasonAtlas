@@ -500,7 +500,7 @@ def main():
     shutil.copy(Path(__file__).with_name('palette.json'),out/'palette.json')
     (out/'NOTICE.txt').write_text(ATTRIBUTION+'\nDerivative categorical data is offered under ODbL 1.0.\n')
     sizes=sorted(path.stat().st_size for path in out.glob(f'*/*/*.{fmt}'))
-    manifest={'tilejson':'3.0.0','name':'MANKIND OpenLandMap PNV '+('global' if args.whole_world else 'regional prototype'),
+    manifest={'tilejson':'3.0.0','name':'Globebase OpenLandMap PNV '+('global' if args.whole_world else 'regional prototype'),
         'scheme':'xyz','format':fmt,'tileSize':256,'minzoom':0,'maxzoom':z,
         # `bounds` is what MapLibre may request. `dataBounds` is the PNV source
         # extent that colours are clipped to; they differ when polar ice is on.

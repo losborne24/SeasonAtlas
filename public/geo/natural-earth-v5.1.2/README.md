@@ -1,4 +1,4 @@
-# MANKIND physical geography
+# Globebase physical geography
 
 Source: Natural Earth vector release **v5.1.2**, pinned to commit
 [`f1890d9f152c896d250a77557a5751a93d494776`](https://github.com/nvkelso/natural-earth-vector/tree/f1890d9f152c896d250a77557a5751a93d494776/geojson).
@@ -23,7 +23,7 @@ administrative, boundary or populated-place datasets are included.
 ## Licence and source credit
 
 Natural Earth data is **public domain**, including modified redistribution and
-commercial use. Permission and attribution are not required. MANKIND voluntarily
+commercial use. Permission and attribution are not required. Globebase voluntarily
 shows **“Made with Natural Earth (public domain)”**, linked to the project.
 Verified against [Natural Earth's Terms of Use](https://www.naturalearthdata.com/about/terms-of-use/)
 on 2026-10-26. The data is supplied without guarantees of accuracy or fitness.

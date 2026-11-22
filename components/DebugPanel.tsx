@@ -53,8 +53,8 @@ export function DebugPanel({ map, terrainWarning, onRetryTerrain }: DebugPanelPr
   }, [map, globalHillshadeStrength, hillshadeIntensity]);
 
   return (
-    <details open className="absolute top-16 left-4 z-20 w-56 rounded-lg border border-panel-border bg-panel p-3 text-xs text-white/70 backdrop-blur-md sm:left-6">
-      <summary className="cursor-pointer tracking-wide">Debug tools</summary>
+    <details className="absolute top-16 left-4 z-20 w-56 rounded-lg border border-panel-border bg-panel p-3 text-xs text-white/70 backdrop-blur-md sm:left-6">
+      <summary className="cursor-pointer tracking-wide">Globe settings</summary>
       <fieldset disabled={!map} className="disabled:opacity-50">
         <legend className="mt-3 text-white/40">Terrain</legend>
         <label className="mt-3 flex items-center justify-between gap-3">
@@ -76,9 +76,10 @@ export function DebugPanel({ map, terrainWarning, onRetryTerrain }: DebugPanelPr
         </label>
         <p className="mt-2 text-white/40">Mapterhorn · physical elevation</p>
         <label className="mt-3 flex items-center gap-2">
-          <input type="checkbox" checked={biomesEnabled} onChange={(event) => setBiomesEnabled(event.target.checked)} />
+          <input type="checkbox" disabled={!BIOME_BASE_URL} checked={biomesEnabled} onChange={(event) => setBiomesEnabled(event.target.checked)} />
           Biome colours
         </label>
+        {!BIOME_BASE_URL && <p className="mt-1 text-white/40">Biome colours are not configured.</p>}
         {biomesEnabled && biomeWarning && <p role="status" className="mt-2 text-amber-200/80">{biomeWarning}</p>}
         <label className="mt-3 flex items-center gap-2">
           <input type="checkbox" checked={diagnosticShading} onChange={(event) => {

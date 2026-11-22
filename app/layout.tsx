@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mankind — a living historical world",
+  title: "Globebase — explore Earth",
   description:
-    "Explore Earth through time on a stylized 3D globe, from 3000 BCE to the present day.",
+    "Explore the world on an interactive 3D globe with physical geography, natural biomes, and terrain.",
 };
 
 export const viewport: Viewport = {

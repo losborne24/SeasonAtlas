@@ -26,7 +26,7 @@ PNV predicts vegetation potential under broadly modern environmental conditions.
 
 `palette.json` is the single colour configuration. Numbers are categorical codes, **not a continuous scale**. Definitions below come from the downloaded CSV, whose gaps in numeric IDs are intentional.
 
-| ID | Original consolidated meaning | MANKIND colour |
+| ID | Original consolidated meaning | Globebase colour |
 | --- | --- | --- |
 | 1 | Tropical evergreen broadleaf forest | `#304d39` |
 | 2 | Tropical semi-evergreen broadleaf forest | `#486044` |
@@ -119,11 +119,11 @@ Debug Tools includes biome toggle, hillshade toggle/intensity, existing exaggera
 
 **No commands below were executed. Obtain approval before creating resources or uploading.**
 
-1. After regional visual approval, choose a versioned prefix and an R2 bucket. Create a narrowly scoped object-write token and configure an AWS CLI profile `mankind-r2` locally. Never put credentials in `NEXT_PUBLIC_*`.
+1. After regional visual approval, choose a versioned prefix and an R2 bucket. Create a narrowly scoped object-write token and configure an AWS CLI profile `globebase-r2` locally. Never put credentials in `NEXT_PUBLIC_*`.
 2. Upload the complete output, including notice, classes, palette and alteration algorithm:
 
 ```sh
-aws --profile mankind-r2 --endpoint-url "https://<ACCOUNT_ID>.r2.cloudflarestorage.com" s3 sync .biome-data/tiles/pnv-v2/ s3://<BUCKET>/biomes/pnv-v2/ --cache-control 'public,max-age=31536000,immutable'
+aws --profile globebase-r2 --endpoint-url "https://<ACCOUNT_ID>.r2.cloudflarestorage.com" s3 sync .biome-data/tiles/pnv-v2/ s3://<BUCKET>/biomes/pnv-v2/ --cache-control 'public,max-age=31536000,immutable'
 ```
 
 Use a new prefix whenever data or palette changes; do not overwrite immutable objects. AWS CLI infers `image/png`, `application/json`, etc.; verify content types on the final domain. Keep the licence/access files publicly retrievable too. For a mutable pointer manifest, separately give it `Cache-Control: no-cache`; versioned manifests can remain immutable.
@@ -143,7 +143,7 @@ Use a new prefix whenever data or palette changes; do not overwrite immutable ob
 ```
 
 4. Attach a custom tile domain through R2 Settings → Public access → Custom Domains. Use a CDN cache rule for the versioned tile prefix and honour object cache headers. `r2.dev` is for development; a custom domain supports Cloudflare caching. Purge any previously cached responses if correcting CORS. See [R2 public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/) and [R2 CORS](https://developers.cloudflare.com/r2/buckets/cors/).
-5. Build MANKIND with `NEXT_PUBLIC_BIOME_TILE_URL=https://<TILE_DOMAIN>/biomes/pnv-v2`. Verify a PNG and manifest with an `Origin` request header, content types, caching and notices. Rotate globe and zoom before releasing.
+5. Build Globebase with `NEXT_PUBLIC_BIOME_TILE_URL=https://<TILE_DOMAIN>/biomes/pnv-v2`. Verify a PNG and manifest with an `Origin` request header, content types, caching and notices. Rotate globe and zoom before releasing.
 
 ## Validation and measured output
 

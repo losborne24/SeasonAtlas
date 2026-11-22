@@ -471,12 +471,12 @@ without `--confirm`. Get approval before provisioning or uploading.
 ### 1. Bucket and credentials
 
 Create an R2 bucket, then a **scoped object-write API token** for it. Configure
-it as an AWS CLI profile (default name `mankind-r2`); R2 is S3-compatible.
+it as an AWS CLI profile (default name `globebase-r2`); R2 is S3-compatible.
 Credentials must never appear in a `NEXT_PUBLIC_*` variable — those are inlined
 into the browser bundle.
 
 ```sh
-aws configure --profile mankind-r2    # access key / secret from the R2 token
+aws configure --profile globebase-r2    # access key / secret from the R2 token
 ```
 
 ### 2. Upload
