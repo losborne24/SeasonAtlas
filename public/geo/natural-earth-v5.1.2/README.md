@@ -30,14 +30,17 @@ The release tag covers the collection; individual theme versions may differ.
 | ne_50m_land.geojson | 1,420 | e874b27a51d146452be360cafb3cc50c86001074a67d534113e6534682f9826b |
 | ne_50m_lakes.geojson | 360 | d350b75978b26fe839b797c2c529b2fb8f47fb3983c03f4964e36d5df9378a52 |
 | ne_50m_rivers_lake_centerlines.geojson | 359 | f286e0ce978fde999ca2d7a78c764be08542e19b63cded52b05c12d5173ccc51 |
+| ne_50m_admin_0_boundary_lines_land.geojson | 390 | 2faac4f6b34386f3d21b6e018cf151f241f00e5c936d44dd17d7d9bfb147fa48 |
 | ne_10m_land.geojson → land-10m/4/{x}/{y}.pbf | 11 upstream features → 256 tiles | 1ac90796408bc6ad6911d69448485d3c4dbf2190370080368a09976e1c9f7416 |
 
 Original files are under `geojson/` at that commit with the same filenames.
 Coordinates and polygon topology are preserved. Output is compact JSON with
 names, label fields and unused attributes removed. Only water `min_zoom`
 attributes are retained. Reservoir polygons and lake centerlines are omitted;
-natural and alkaline lakes and actual river lines are retained. No cultural,
-administrative, boundary or populated-place datasets are included.
+natural and alkaline lakes and actual river lines are retained. Country boundary
+lines additionally retain `min_zoom` from upstream `MIN_ZOOM`; all 390 segments,
+including disputed and indefinite boundaries, are drawn with the same line style.
+These are the pinned release's boundaries, not a live political dataset.
 
 ## Licence and source credit
 
@@ -54,6 +57,7 @@ From the repository root, with Node and network access:
 
 ```sh
 node scripts/prepare-natural-earth.mjs
+node scripts/prepare-country-borders.mjs
 node scripts/prepare-regional-coastlines.mjs
 node scripts/check-geography.mjs
 ```
@@ -65,10 +69,14 @@ GeoJSON is checked in; running the application or build needs no upstream access
 Regional tiles are also checked in. To rebuild them offline, run
 `node scripts/prepare-regional-coastlines.mjs /path/to/ne_10m_land.geojson`.
 The script uses the tilers already installed with MapLibre; it adds no packages.
+Country borders can be rebuilt offline with
+`node scripts/prepare-country-borders.mjs /path/to/ne_50m_admin_0_boundary_lines_land.geojson`.
+The script verifies the upstream SHA-256 and strips unused properties.
 
 ## Resolution and performance
 
-Global base: **2,464,879 bytes** uncompressed, approximately **850 KB gzip**. Actual
+Physical global base: **2,464,879 bytes** uncompressed, approximately **850 KB gzip**.
+Country borders add **474,936 bytes** uncompressed. Actual
 transfer compression depends on the hosting server. GeoJSON is fetched once per
 map instance, tiled and simplified in MapLibre's existing worker. The 50m base
 supplies global/continental views, avoiding an overlapping 110m download.

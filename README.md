@@ -1,8 +1,8 @@
 # Globebase
 
 A subject-agnostic, interactive globe of Earth. Explore physical geography,
-coastlines, rivers, lakes and terrain without a historical timeline, political
-boundaries or preselected landmarks. Globebase is a foundation for world-based
+coastlines, rivers, lakes, country borders and terrain without a historical timeline
+or preselected landmarks. Globebase is a foundation for world-based
 experiences; the base globe makes no assumptions about their subject matter.
 
 ## SeasonAtlas design reference
@@ -219,6 +219,10 @@ to 2D also resets tilt and bearing for a north-up map.
 settlement footprints fade in between zooms 2 and 5, above biomes and below
 coastlines, rivers and lakes. These are generalised urban extents, without
 individual buildings or city labels.
+
+**Country borders** are always visible in both 2D and 3D. Muted grey-green lines
+scale with zoom above terrain and water. The bundled Natural Earth 1:50m
+boundaries are generalised and reflect the pinned dataset rather than live updates.
 
 The base globe needs no account, backend, generated biome tiles or API key.
 Mapterhorn elevation tiles load over the network; unavailable elevation does

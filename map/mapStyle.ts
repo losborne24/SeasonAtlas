@@ -73,6 +73,7 @@ const palette = {
   ocean: "#0a1622",
   land: "#223240",
   coastline: "#587083",
+  countryBorder: "#a3aaa6",
   // Inland water reads as water, not as holes punched through the land: a muted
   // blue keyed to the navy ocean but lifted well clear of it and of the land.
   inlandWater: "#35596f",
@@ -156,6 +157,12 @@ export function createGlobeStyle(): StyleSpecification {
       "physical-rivers": {
         type: "geojson",
         data: `${GEOGRAPHY_ROOT}/ne_50m_rivers_lake_centerlines.geojson`,
+        attribution: GEO_ATTRIBUTION,
+        maxzoom: 8,
+      },
+      "country-borders": {
+        type: "geojson",
+        data: `${GEOGRAPHY_ROOT}/ne_50m_admin_0_boundary_lines_land.geojson`,
         attribution: GEO_ATTRIBUTION,
         maxzoom: 8,
       },
@@ -260,6 +267,17 @@ export function createGlobeStyle(): StyleSpecification {
           // 1:50m rings are coarse, so globally the fill stays quiet and only
           // firms up once a lake is large enough on screen to be read as one.
           "fill-opacity": ["interpolate", ["linear"], ["zoom"], 0, 0.55, 3, 0.75, 5, 0.9],
+        },
+      },
+      {
+        id: "country-borders",
+        type: "line",
+        source: "country-borders",
+        layout: { "line-join": "round", "line-cap": "round" },
+        paint: {
+          "line-color": palette.countryBorder,
+          "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.65, 4, 1, 8, 1.5],
+          "line-opacity": ["interpolate", ["linear"], ["zoom"], 0, 0.5, 3, 0.7, 6, 0.85],
         },
       },
       {

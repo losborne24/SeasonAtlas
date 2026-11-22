@@ -59,7 +59,7 @@ for (const [id, source] of Object.entries(style.sources)) {
   assert.equal(data.type, "FeatureCollection");
   assert.ok(data.features.length > 300);
   for (const feature of data.features) {
-    const polygon = id !== "physical-rivers";
+    const polygon = id !== "physical-rivers" && id !== "country-borders";
     assert.ok((polygon ? ["Polygon", "MultiPolygon"] : ["LineString", "MultiLineString"]).includes(feature.geometry.type));
     assert.ok(Object.keys(feature.properties).every((key) => key === "min_zoom"));
     if (id !== "physical-land") assert.ok(Number.isFinite(feature.properties.min_zoom));
@@ -81,7 +81,7 @@ for (const [id, source] of Object.entries(style.sources)) {
       }
     }
   }
-  console.log(`${id}: ${data.features.length} valid physical features`);
+  console.log(`${id}: ${data.features.length} valid geography features`);
 }
 
 const grid = style.sources.graticule.data.features;
