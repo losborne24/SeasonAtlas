@@ -4,7 +4,8 @@ An interactive globe of Earth, evolving into the SeasonAtlas weather explorer.
 Explore physical geography, coastlines, rivers, lakes, country borders and terrain.
 Search for a city, select a map location and choose a seasonal day and hour.
 The existing Globebase geography forms the foundation, with historical weather
-averages for selected locations. Map-wide weather overlays are planned below.
+averages for selected locations. The local daily-temperature overlay pipeline is documented in
+[local weather setup](docs/local-weather.md); real tiles require a completed CDS download.
 
 ## SeasonAtlas design reference
 
@@ -238,7 +239,9 @@ A new location/month loads historical records once; changing the hour or day
 within that month uses the downloaded averages. Playback pauses when an uncached
 month needs data. First lookups may take up to 90 seconds; loading, missing-data
 coverage and retry states appear in the panel. Mobile panels scroll to reveal
-additional details. Weather overlays and annual charts remain future work.
+additional details. A separate daily-temperature overlay can be generated and
+served locally; see [local weather setup](docs/local-weather.md). Annual charts
+and additional weather overlays remain future work.
 
 Use the **2D / 3D** control at the upper right to switch between a Mercator map
 and the globe. The current location, zoom and layers stay in place; switching
@@ -256,6 +259,16 @@ boundaries are generalised and reflect the pinned dataset rather than live updat
 The base globe needs no account, backend, generated biome tiles or API key.
 Mapterhorn elevation tiles load over the network; unavailable elevation does
 not prevent navigation or the local physical geography from rendering.
+
+## Local daily temperature overlay
+
+Use `pnpm weather:fetch`, `pnpm weather:build` and `pnpm weather:serve` after
+configuring a free Copernicus account and the isolated Python environment.
+See [the complete local workflow](docs/local-weather.md), including dataset
+licence acceptance and validation. This uses the 2015–2024 baseline and 15-day
+window, but shows **daily UTC mean temperature** rather than a selected hour.
+**Daily temperature** is enabled on startup. Open **Globe settings** for its
+opacity control and legend. Day changes crossfade between complete frames. Generated data stays on this computer; no hosting is configured.
 
 ## Optional biome colours
 

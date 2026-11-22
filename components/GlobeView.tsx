@@ -21,6 +21,14 @@ maplibregl.setWorkerUrl(
   new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString(),
 );
 
+// Normal raster 404s mean "empty tile" to MapLibre. Temperature frames must
+// fail explicitly so an incomplete replacement never displaces valid weather.
+maplibregl.addProtocol("seasonatlas-weather", async (request, controller) => {
+  const response = await fetch(request.url.replace(/^seasonatlas-weather:\/\//, ""), { signal: controller.signal });
+  if (!response.ok) throw new Error(`Temperature tile failed (HTTP ${response.status}).`);
+  return { data: await response.arrayBuffer(), cacheControl: response.headers.get("cache-control") ?? undefined };
+});
+
 import {
   createGlobeStyle, viewToCamera,
   TERRAIN_SOURCE,

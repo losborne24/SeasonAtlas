@@ -14,6 +14,7 @@ import {
   GLOBAL_HILLSHADE_STRENGTH, LOCAL_HILLSHADE_STRENGTH,
 } from "@/map/hillshade";
 import { attachBiomes, BIOME_BASE_URL } from "@/map/biomes";
+import { TemperatureOverlay } from "@/components/TemperatureOverlay";
 
 interface DebugPanelProps {
   map: Map | null;
@@ -110,6 +111,7 @@ export function DebugPanel({ map, terrainWarning, onRetryTerrain }: DebugPanelPr
         </label>
         <p className="mt-1 text-white/40">Global relief blends into regional detail from zoom 4 to 6.</p>
       </fieldset>
+      <TemperatureOverlay map={map} />
       {terrainWarning && (
         <p role="status" className="mt-2 text-amber-200/80">
           Some elevation tiles could not load. Terrain may be incomplete.
