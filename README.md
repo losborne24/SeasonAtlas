@@ -5,6 +5,200 @@ coastlines, rivers, lakes and terrain without a historical timeline, political
 boundaries or preselected landmarks. Globebase is a foundation for world-based
 experiences; the base globe makes no assumptions about their subject matter.
 
+## SeasonAtlas design reference
+
+The intended direction is SeasonAtlas: explore the weather of any place, at any
+time of year. The reference shows weather layers on an interactive globe,
+location search, a location weather panel, annual averages and a seasonal timeline.
+This is a design target for future development.
+
+![SeasonAtlas design reference showing weather layers over Europe, a Paris weather panel and a seasonal timeline](docs/images/seasonatlas-design-reference.png)
+
+## SeasonAtlas development plan
+
+This plan describes future work toward the design reference above. The sections
+from **Getting started** onward document the current Globebase application.
+Effort estimates are provisional and assume the existing map code can be reused.
+The technologies below are proposed choices, not a list of installed dependencies.
+
+### 1. Target experience
+
+Allow someone to select any location in Europe, choose a day and hour, and see
+what the weather is typically like at that point in the year.
+
+User journey: **Explore map → Select time → Choose layer → Inspect city**.
+
+The five core capabilities are:
+
+1. Smooth zoomable terrain map, down to city scale.
+2. Temperature, precipitation, wind and cloud visualizations.
+3. Interactive day-of-year and hour-of-day timeline.
+4. Clickable locations with historical averages and graphs.
+5. Smooth animation between times, days and seasons.
+
+### 2. Implementation phases
+
+#### Phase 1 — Map foundation
+
+**Start here. Estimated effort: 2–4 development days.**
+
+Preserve the existing terrain tiles, hillshade and dark ocean. Introduce
+controlled zoom, smooth transitions, city labels and location selection. Add a
+floating search bar and map navigation controls.
+
+**Deliverable:** a polished geographical explorer without weather overlays.
+
+#### Phase 2 — Seasonal timeline
+
+**Estimated effort: 2–3 development days.**
+
+Build a translucent bottom timeline with January–December, day selection, a
+separate 00:00–23:00 hour control, playback, speed adjustment and smooth dragging.
+Connect everything to a single shared date/time state.
+
+**Deliverable:** the map and location panels respond consistently to a selected
+date and hour.
+
+#### Phase 3 — Historical weather engine
+
+**Estimated effort: 3–6 development days.**
+
+Integrate historical weather data, compute hourly seasonal averages, cache
+results, and retrieve statistics using latitude and longitude. Handle leap days,
+time zones, missing data and geographic resolution.
+
+**Deliverable:** real average temperature, precipitation and wind statistics for
+any selected city or map location.
+
+#### Phase 4 — Weather overlays
+
+**Estimated effort: 5–10 development days.**
+
+Render temperature as a continuous gradient over terrain. Add precipitation
+shading and wind-speed layers. Introduce legends, opacity controls and
+transitions between layers and time slices.
+
+**Deliverable:** the entire map changes with the selected season instead of
+showing weather only inside city panels.
+
+#### Phase 5 — City analytics
+
+**Estimated effort: 3–5 development days.**
+
+Add a floating glass panel displaying city, coordinates, temperature, wind speed,
+precipitation and a 12-month chart. Include annual extremes, date-specific
+statistics, units and data provenance.
+
+**Deliverable:** clicking Paris, London or any map coordinate opens a weather
+analysis panel.
+
+#### Phase 6 — Immersive effects and polish
+
+**Estimated effort: 5–10 development days.**
+
+Add animated wind particles, gentle cloud transitions, glassmorphism, dynamic
+lighting, responsive layouts and a cinematic loading experience. Optimize
+animation and graceful performance fallbacks.
+
+**Deliverable:** the premium, atmospheric experience represented by the mockup.
+
+**Estimated total: approximately 20–38 development days for one developer.**
+The biggest unknown is the weather-overlay pipeline, not the interface styling.
+The individual phase ranges sum to 20–38 days.
+
+### 3. Recommended technical architecture
+
+Retain the existing MapLibre renderer, terrain relief and tile sources where
+possible. Confirm their capabilities before extending the map.
+
+| Component | Proposed technology | Purpose |
+| --- | --- | --- |
+| Frontend | React + TypeScript | Application UI and shared state |
+| Map renderer | MapLibre GL JS | Terrain, zoom, layers and map interaction |
+| Styling | Tailwind CSS | Floating glass panels and responsive design |
+| Animation | Motion + WebGL shaders | UI and visual transitions |
+| Weather data | ERA5 / ERA5-Land | Historical weather averages |
+| City weather lookup | Open-Meteo | Point-based weather statistics |
+| Weather overlay | Raster tiles / GPU shaders | Colour temperature, precipitation and wind across the map |
+| Charts | Recharts | Monthly and seasonal weather graphs |
+| Processing | Python + xarray | Preparing and aggregating historical data |
+
+The plan uses MapLibre for raster elevation, hillshade and terrain rendering,
+and proposes Open-Meteo for hourly historical temperature, precipitation, wind
+speed and cloud cover, including ERA5-based data. Validate provider coverage,
+access requirements and dataset suitability during the weather-engine phase.
+
+### 4. Seasonal weather data
+
+Precompute a climatological weather atlas instead of downloading historical
+records every time a user drags the timeline.
+
+1. **ERA5 historical dataset:** temperature, wind and precipitation across
+   multiple years.
+2. **Python processing pipeline:** group by calendar day and hour; calculate
+   averages.
+3. **Optimized weather grids and tiles:** cache by variable, day, hour and
+   geographic area.
+4. **SeasonAtlas interactive map:** fast timeline updates and location statistics.
+
+For the first version, consider a **1991–2020 climate-normal baseline** or a more
+recent 10–20-year period. A five-year period works for a prototype, but averages
+for individual days can be noisy, especially for precipitation.
+
+Start with daily map overlays and hourly city statistics. Add hourly map-wide
+overlays once the pipeline is proven. Show a **model resolution** indicator when
+users zoom into cities: zooming increases visual detail, not the underlying ERA5
+grid resolution.
+
+### 5. UI layout specification
+
+Keep the terrain visible behind every control. Sidebars should be collapsible,
+and the timeline should overlay the map rather than permanently reducing its
+height. This structural wireframe supports the full-screen cinematic mockup.
+
+| Area | Contents |
+| --- | --- |
+| Header | SeasonAtlas; Explore; Compare |
+| Floating search | Search city or coordinates… |
+| Layers panel | Temperature; Wind; Rainfall |
+| Map canvas | Interactive terrain and weather overlay |
+| Location panel | Paris, France; 25°C; Wind 12.6 km/h; Rainfall 0.8 mm/h |
+| Time controls | 15 July · 14:00 |
+| Bottom timeline | January–December with spring, summer and autumn markers |
+
+The Paris values above are illustrative metrics, not measured weather data.
+
+### 6. Suggested first development sprint
+
+**Sprint 1 — Functional foundation**
+
+The supplied planning checklist starts at **0/9 complete**; confirm existing
+capabilities when beginning the sprint.
+
+- [ ] Identify the existing map renderer and tile sources.
+- [ ] Extract map view state (centre, zoom, pitch and bearing).
+- [ ] Build the SeasonAtlas header and floating search.
+- [ ] Add day-of-year and hour sliders.
+- [ ] Create a shared time and selected-location state.
+- [ ] Connect location clicks to Open-Meteo historical weather.
+- [ ] Display temperature, wind and precipitation in a floating panel.
+- [ ] Add loading, empty and error states.
+- [ ] Validate selected weather averages against source data.
+
+### 7. Priorities and milestones
+
+1. **Usable MVP:** the original map plus timeline, city search, weather data, a
+   location panel and a basic temperature overlay. This proves the core
+   interaction.
+2. **Immersive map:** continuous weather colour gradients, animated wind vectors,
+   smooth seasonal transitions and high-performance tiled data.
+3. **Polished product:** city comparisons, advanced historical analytics,
+   responsive design, accessibility and cinematic visual details.
+
+Build incrementally: first make the original map respond to time and location,
+then make the weather visible across the terrain, and finally add atmospheric
+effects. Each milestone should move toward a working SeasonAtlas experience.
+
 ## Getting started
 
 Use Node.js 20.9+ and the pnpm version pinned in `package.json`.
@@ -123,4 +317,5 @@ shown when unavailable. Rendering diagnostics are shown on wider screens.
 
 The documents in `docs/` retain earlier terrain and biome implementation
 records, including observations of interface features that have since been
-removed. This README describes the current application.
+removed. The current-application sections of this README describe the existing application;
+the SeasonAtlas development plan describes intended future work.
