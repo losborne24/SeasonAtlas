@@ -6,7 +6,7 @@ import { useExplorationStore } from "@/state/explorationStore";
 import { TEMPERATURE_BASE, validateTemperatureAtlas, type TemperatureAtlas } from "@/map/temperature";
 
 import { TemperatureFrames, type TemperatureFrameStatus } from "@/map/temperatureFrames";
-import { formatSeasonalDate } from "@/lib/seasonalTime";
+import { formatHour, formatSeasonalDate } from "@/lib/seasonalTime";
 
 export function TemperatureOverlay({ map }: { map: Map | null }) {
   const [enabled, setEnabled] = useState(true);
@@ -22,22 +22,24 @@ export function TemperatureOverlay({ map }: { map: Map | null }) {
     if (!enabled || !map) return;
     const controller = new AbortController();
     let renderer: TemperatureFrames | null = null;
+    const manifestBase = process.env.NODE_ENV === "development" && new URLSearchParams(window.location.search).get("weatherTrial") === "1"
+      ? "/weather/global-temperature-hourly-trial-128-v1" : TEMPERATURE_BASE;
     const unsubscribe = useExplorationStore.subscribe((state, previous) => {
-      if (state.dayOfYear !== previous.dayOfYear) renderer?.setDay(state.dayOfYear);
+      if (state.dayOfYear !== previous.dayOfYear || state.hour !== previous.hour) renderer?.setDay(state.dayOfYear, state.hour);
     });
-    void fetch(`${TEMPERATURE_BASE.replace(/\/$/, "")}/manifest.json`, {
+    void fetch(`${manifestBase.replace(/\/$/, "")}/manifest.json`, {
       signal: AbortSignal.any([controller.signal, AbortSignal.timeout(5000)]),
     }).then(async (response) => {
       if (!response.ok) throw new Error("Local atlas is not available. Build and serve the ERA5 temperature data first.");
       const metadata = validateTemperatureAtlas(await response.json());
       if (controller.signal.aborted) return;
-      renderer = new TemperatureFrames(map, TEMPERATURE_BASE, metadata, opacityRef.current, (next) => {
+      renderer = new TemperatureFrames(map, metadata.tileBase ?? manifestBase, metadata, opacityRef.current, (next) => {
         setStatus(next);
         if (next.error) useExplorationStore.getState().setPlaying(false);
       });
       frames.current = renderer;
       setAtlas(metadata);
-      renderer.setDay(useExplorationStore.getState().dayOfYear);
+      renderer.setDay(useExplorationStore.getState().dayOfYear, useExplorationStore.getState().hour);
     }).catch((cause) => {
       if (!controller.signal.aborted) setError(cause instanceof Error && cause.message !== "Failed to fetch" ? cause.message : "Local atlas is not available. Build and serve the ERA5 temperature data first.");
     });
@@ -53,7 +55,7 @@ export function TemperatureOverlay({ map }: { map: Map | null }) {
     <legend>Weather overlay</legend>
     <label className="temperature-toggle"><input type="checkbox" checked={enabled} onChange={(event) => {
       setEnabled(event.target.checked); setAtlas(null); setError(""); setStatus({ displayedDay: null, pendingDay: null });
-    }} /> Daily temperature</label>
+    }} /> Temperature</label>
     {enabled && <>
       {atlas && <>
         <label className="temperature-opacity">Opacity · {Math.round(opacity * 100)}%
@@ -63,11 +65,12 @@ export function TemperatureOverlay({ map }: { map: Map | null }) {
           <div style={{ background: `linear-gradient(90deg, ${atlas.colors.map((stop) => `${stop.color} ${(stop.value - atlas.colors[0].value) / (atlas.colors.at(-1)!.value - atlas.colors[0].value) * 100}%`).join(", ")})` }} />
           <span>{atlas.colors[0].value} °C</span><span>{atlas.colors.at(-1)!.value} °C</span>
         </div>
-        <p>{atlas.kind === "test" ? "SYNTHETIC TEST DATA · not weather" : "ERA5 · 2015–2024 · 15-day window"}</p>
-        <p>Daily UTC mean · hour control affects the location panel only.</p>
-        {status.displayedDay !== null && <p>Showing {formatSeasonalDate(status.displayedDay)}{status.pendingDay !== null ? ` · loading ${formatSeasonalDate(status.pendingDay)}` : ""}</p>}
-        {status.error && <p role="status" className="temperature-error">{status.error}<button type="button" onClick={() => frames.current?.setDay(useExplorationStore.getState().dayOfYear)}>Retry tiles</button></p>}
+        <p>{atlas.kind === "test" ? "SYNTHETIC TEST DATA · not weather" : atlas.kind === "sample" ? `REAL SAMPLE · ${atlas.sampleDate} · not seasonal averages` : `ERA5 · ${atlas.baseline[0]}–${atlas.baseline[1]} · 15-day window`}</p>
+        <p>{atlas.hours ? "Three-hour frames · UTC" : "Daily UTC mean · hourly map data is being prepared."}</p>
+        {status.displayedDay !== null && <p>Showing {formatSeasonalDate(status.displayedDay)}{status.displayedHour != null ? ` · ${formatHour(status.displayedHour)} UTC` : ""}{status.pendingDay !== null ? ` · loading ${formatSeasonalDate(status.pendingDay)}${status.pendingHour != null ? ` ${formatHour(status.pendingHour)} UTC` : ""}` : ""}</p>}
+        {status.error && <p role="status" className="temperature-error">{status.error}<button type="button" onClick={() => frames.current?.setDay(useExplorationStore.getState().dayOfYear, useExplorationStore.getState().hour)}>Retry tiles</button></p>}
         <p>Grid {atlas.resolutionDegrees}° · map zoom adds no weather detail.</p>
+        <p>Coverage · {atlas.bounds[0] === -180 && atlas.bounds[2] === 180 ? "Worldwide map" : "European region"}</p>
       </>}
       {!atlas && !error && <p role="status">Loading local temperature atlas…</p>}
       {error && <p role="status" className="temperature-error">{error}<button type="button" onClick={() => { setError(""); setAtlas(null); setRetry((value) => value + 1); }}>Retry atlas</button></p>}

@@ -22,7 +22,7 @@ export function LocationPanel() {
         {location.country && <p className="location-region">{[location.region, location.country].filter(Boolean).join(", ")}</p>}
         <p className="location-coordinates">⌖ {formatCoordinates(location.latitude, location.longitude)}</p>
       </div>
-      <div className="location-selected-time"><span>Selected seasonal time</span><strong>{formatSeasonalDate(day)} · {formatHour(hour)}</strong><small>Local hour at the selected location</small></div>
+      <div className="location-selected-time"><span>Selected seasonal time</span><strong>{formatSeasonalDate(day)} · {formatHour(hour)} UTC</strong><small>One shared UTC clock for the worldwide map</small></div>
       <HistoricalWeather />
       <details className="location-details">
         <summary>Location details</summary>

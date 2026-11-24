@@ -18,6 +18,10 @@ def run():
     averaged, coverage = smooth(values * 10, counts)
     np.testing.assert_allclose(averaged, 20)
     assert (coverage == 150).all()
+    five_counts = np.ones(values.shape, dtype=np.uint16) * 5
+    five_mean, five_coverage = smooth(values * five_counts, five_counts, year_count=5)
+    np.testing.assert_allclose(five_mean, 20)
+    assert (five_coverage == 75).all()
     counts[364, 0, 0] = 9
     incomplete, _ = smooth(values * counts, counts)
     assert np.isnan(incomplete[0, 0, 0])  # December wraps into January.
@@ -51,9 +55,22 @@ def run():
         assert download_format(root / 'fixture.zip') == '.zip'
         with contextlib.redirect_stdout(io.StringIO()):
             climate, actual_lat, actual_lon, _ = aggregate(raw, fixture=True)
+            chunked, _, _, _ = aggregate(raw, fixture=True, workspace=root / 'work')
             manifest = build(raw, root / 'tiles', maxzoom=2, days=[1, 196], fixture=True)
+        np.testing.assert_allclose(chunked, climate, atol=1e-6)
         np.testing.assert_allclose(climate[0], field - 273.15, atol=1e-5)
         np.testing.assert_allclose(climate[195], field - 273.15, atol=1e-5)
+        five_raw = root / 'five-raw'
+        five_raw.mkdir()
+        five_data = data.copy(deep=True)
+        old = dates.astype('datetime64[Y]').astype(int) + 1970 < 2020
+        five_data['t2m'].values[old] += 40
+        five_data.to_netcdf(five_raw / 'fixture.nc')
+        with contextlib.redirect_stdout(io.StringIO()):
+            five, _, _, _ = aggregate(five_raw, fixture=True, start_year=2020, end_year=2024)
+            five_manifest = build(five_raw, root / 'five-tiles', maxzoom=0, days=[196], fixture=True, start_year=2020, end_year=2024)
+        np.testing.assert_allclose(five[195], field - 273.15, atol=1e-5)
+        assert five_manifest['baseline'] == [2020, 2024]
         sample = sample_frame(climate[195], actual_lat, actual_lon, 2, 2, 1)
         n = 4
         longs = (2 + (np.arange(256) + .5) / 256) / n * 360 - 180
@@ -63,6 +80,13 @@ def run():
         assert valid.any()
         np.testing.assert_allclose(sample[valid], expected[valid], atol=1e-5)
         assert manifest['kind'] == 'test' and manifest['days'] == [1, 196]
+        world_lat = np.array([-90., 0., 90.])
+        world_lon = np.array([-180., -90., 0., 90.])
+        world_frame = np.broadcast_to(np.array([-1., 0., 1., 0.]), (3, 4))
+        west_tile = sample_frame(world_frame, world_lat, world_lon, 2, 0, 1)
+        east_tile = sample_frame(world_frame, world_lat, world_lon, 2, 3, 1)
+        assert np.isfinite(west_tile).all() and np.isfinite(east_tile).all()
+        np.testing.assert_allclose(west_tile[:, 0], east_tile[:, -1], atol=1e-6)
         assert json.loads((root / 'tiles/manifest.json').read_text())['timezone'] == 'UTC'
         for tile in (root / 'tiles').rglob('*.png'):
             with Image.open(tile) as image:

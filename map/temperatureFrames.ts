@@ -1,19 +1,22 @@
 import type { ErrorEvent, Map } from "maplibre-gl";
-import { attachTemperature, TEMPERATURE_LAYER, TEMPERATURE_SOURCE, type TemperatureAtlas } from "./temperature";
+import { attachTemperature, TEMPERATURE_LAYER, TEMPERATURE_SOURCE, temperatureHour, type TemperatureAtlas } from "./temperature";
 
 export interface TemperatureFrameStatus {
   displayedDay: number | null;
   pendingDay: number | null;
+  displayedHour?: number | null;
+  pendingHour?: number | null;
   error?: string;
 }
 
-type Frame = { day: number; slot: number; remove: () => void };
+type Frame = { day: number; hour: number | null; slot: number; remove: () => void };
 
 /** Keep a complete frame on screen while a second source loads and crossfades. */
 export class TemperatureFrames {
   private active: Frame | null = null;
   private incoming: Frame | null = null;
   private wanted = 1;
+  private wantedHour: number | null = null;
   private disposed = false;
   private failed = false;
   private fading = false;
@@ -29,38 +32,46 @@ export class TemperatureFrames {
   private layer(frame: Frame) { return `${TEMPERATURE_LAYER}-${frame.slot}`; }
   private source(frame: Frame) { return `${TEMPERATURE_SOURCE}-${frame.slot}`; }
 
-  setDay(day: number) {
+  private matches(frame: Frame | null) { return frame?.day === this.wanted && frame.hour === this.wantedHour; }
+
+  private status(error?: string): TemperatureFrameStatus {
+    return { displayedDay: this.active?.day ?? null, displayedHour: this.active?.hour ?? null,
+      pendingDay: this.matches(this.active) || error ? null : this.wanted, pendingHour: this.wantedHour, error };
+  }
+
+  setDay(day: number, hour = 0) {
     this.wanted = day;
+    this.wantedHour = temperatureHour(this.atlas, hour);
     if (!this.atlas.days.includes(day)) {
-      this.report({ displayedDay: this.active?.day ?? null, pendingDay: null, error: "This atlas has no frame for the selected day." });
+      this.report(this.status("This atlas has no frame for the selected day."));
       return;
     }
     if (!this.fading) this.prepare();
-    else this.report({ displayedDay: this.active?.day ?? null, pendingDay: day });
+    else this.report(this.status());
   }
 
   private prepare() {
     if (this.disposed || !this.atlas.days.includes(this.wanted)) return;
-    if (this.active?.day === this.wanted) {
+    if (this.matches(this.active)) {
       this.incoming?.remove(); this.incoming = null;
-      this.report({ displayedDay: this.active.day, pendingDay: null });
+      this.report(this.status());
       return;
     }
-    if (this.incoming?.day === this.wanted && !this.failed) return;
+    if (this.matches(this.incoming) && !this.failed) return;
     this.incoming?.remove();
     this.failed = false;
     const slot = this.active?.slot === 0 ? 1 : 0;
-    this.incoming = { day: this.wanted, slot, remove: attachTemperature(this.map, this.base, this.atlas, this.wanted, 0, slot) };
+    this.incoming = { day: this.wanted, hour: this.wantedHour, slot, remove: attachTemperature(this.map, this.base, this.atlas, this.wanted, 0, slot, this.wantedHour) };
     // The incoming layer is always above the outgoing one, independent of slot order.
     this.map.moveLayer(this.layer(this.incoming), "coastline");
-    this.report({ displayedDay: this.active?.day ?? null, pendingDay: this.wanted });
+    this.report(this.status());
     this.map.triggerRepaint();
   }
 
   private ready = () => {
     if (this.disposed || this.fading || this.failed || !this.incoming) return;
     if (!this.map.isSourceLoaded(this.source(this.incoming))) return;
-    if (this.incoming.day !== this.wanted) { this.prepare(); return; }
+    if (!this.matches(this.incoming)) { this.prepare(); return; }
     if (!this.active) { this.commit(); return; }
     this.fading = true;
     this.progress = 0;
@@ -93,8 +104,8 @@ export class TemperatureFrames {
     this.active = this.incoming;
     this.incoming = null;
     this.fading = false;
-    this.report({ displayedDay: this.active.day, pendingDay: this.active.day === this.wanted ? null : this.wanted });
-    if (this.active.day !== this.wanted) this.prepare();
+    this.report(this.status());
+    if (!this.matches(this.active)) this.prepare();
   }
 
   setOpacity(opacity: number) {
@@ -110,8 +121,7 @@ export class TemperatureFrames {
     this.fading = false;
     this.map.setPaintProperty(this.layer(this.incoming), "raster-opacity", 0);
     if (this.active) this.map.setPaintProperty(this.layer(this.active), "raster-opacity", this.opacity);
-    this.report({ displayedDay: this.active?.day ?? null, pendingDay: null,
-      error: "New temperature tiles could not load. The last available day remains displayed." });
+    this.report(this.status("New temperature tiles could not load. The last available frame remains displayed."));
   };
 
   destroy() {

@@ -23,46 +23,60 @@ def download_format(path):
         data.variables['t2m'][:]  # Ensure the completed payload can actually be decoded.
     return '.nc'
 
-def request_for(year, month):
+def request_for(year, month, bounds=None):
     return {
         'product_type': 'reanalysis', 'variable': ['2m_temperature'],
         'year': str(year), 'month': [f'{month:02}'],
         'day': [f'{d:02}' for d in range(1, calendar.monthrange(year, month)[1] + 1)],
         'daily_statistic': 'daily_mean', 'time_zone': 'utc+00:00',
-        'frequency': '1_hourly', 'area': BOUNDS,
+        'frequency': '1_hourly', 'area': BOUNDS if bounds is None else bounds,
     }
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--directory', type=Path, default=Path('.weather-data/raw'))
-    parser.add_argument('--years', type=int, nargs='+', default=list(range(2015, 2025)))
+    parser.add_argument('--years', type=int, nargs='+')
     parser.add_argument('--months', type=int, nargs='+', default=list(range(1, 13)))
     parser.add_argument('--dry-run', action='store_true', help='Print requests without credentials or downloads')
+    parser.add_argument('--global', dest='world', action='store_true', help='Download the native global grid into a separate directory')
     args = parser.parse_args()
+    if args.years is None: args.years = list(range(2020, 2025))
+    if args.world and args.directory == Path('.weather-data/raw'):
+        args.directory = Path('.weather-data/raw-global')
+    bounds = [90, -180, -90, 179.75] if args.world else BOUNDS
     if any(y < 2015 or y > 2024 for y in args.years) or any(m < 1 or m > 12 for m in args.months):
         parser.error('Use baseline years 2015–2024 and months 1–12.')
     if args.dry_run:
-        print(json.dumps({'dataset': DATASET, 'requests': [request_for(y, m) for y in args.years for m in args.months]}, indent=2))
+        print(json.dumps({'dataset': DATASET, 'requests': [request_for(y, m, bounds) for y in args.years for m in args.months]}, indent=2))
         return
     if not (Path.home() / '.cdsapirc').is_file() and not os.getenv('CDSAPI_KEY'):
         parser.error('Configure ~/.cdsapirc locally first: https://cds.climate.copernicus.eu/en/how-to-api. Do not put tokens in this repository.')
     import cdsapi
-    client = cdsapi.Client()
+    client = cdsapi.Client(wait_until_complete=False, delete=False)
     args.directory.mkdir(parents=True, exist_ok=True)
     for year in args.years:
         for month in args.months:
             stem = args.directory / f'era5-daily-{year}-{month:02}'
-            request = request_for(year, month)
+            request = request_for(year, month, bounds)
             record = stem.with_suffix('.request.json')
             completed = next((stem.with_suffix(ext) for ext in ['.nc', '.zip'] if stem.with_suffix(ext).is_file()), None)
             if completed and record.is_file() and json.loads(record.read_text()) == {'dataset': DATASET, 'request': request}:
                 print(f'Reusing {completed}', flush=True)
                 continue
             temporary = stem.with_suffix('.part')
-            client.retrieve(DATASET, request, str(temporary))
+            pending = stem.with_suffix('.pending.json')
+            saved = json.loads(pending.read_text()) if pending.is_file() else None
+            if saved and saved.get('dataset') == DATASET and saved.get('request') == request:
+                remote = client.client.get_remote(saved['jobId'])
+                print(f'Resuming submitted job for {year}-{month:02}', flush=True)
+            else:
+                remote = client.retrieve(DATASET, request)
+                pending.write_text(json.dumps({'dataset': DATASET, 'request': request, 'jobId': remote.request_id}, indent=2) + '\n')
+            remote.download(str(temporary))
             target = stem.with_suffix(download_format(temporary))
             temporary.replace(target)
             record.write_text(json.dumps({'dataset': DATASET, 'request': request}, indent=2) + '\n')
+            pending.unlink(missing_ok=True)
             print(f'Downloaded {target}', flush=True)
 
 if __name__ == '__main__':

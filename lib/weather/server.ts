@@ -1,5 +1,5 @@
 import { MONTHS, calendarDate } from "../seasonalTime";
-import { CLIMATE, ClimateAccumulator, monthRanges, validateArchive, type ClimateMonth } from "./climate";
+import { WEATHER_DATASET, CLIMATE, ClimateAccumulator, monthRanges, validateArchive, type ClimateMonth } from "./climate";
 
 const DAY = 86400;
 const memory = new Map<string, { expires: number; value: ClimateMonth }>();
@@ -26,7 +26,7 @@ async function archive(latitude: number, longitude: number, start: string, end: 
   url.search = new URLSearchParams({
     latitude: String(latitude), longitude: String(longitude), start_date: start, end_date: end,
     hourly: "temperature_2m,wind_speed_10m,precipitation", models: CLIMATE.model,
-    timezone: "auto", timeformat: "unixtime", temperature_unit: "celsius",
+    timezone: "UTC", timeformat: "unixtime", temperature_unit: "celsius",
     wind_speed_unit: "kmh", precipitation_unit: "mm", cell_selection: "nearest", elevation: "nan",
   }).toString();
   const response = await fetch(url, {
@@ -73,7 +73,7 @@ async function buildMonth(latitude: number, longitude: number, month: number): P
 
 /** Bounded process cache plus persistent per-range Next.js fetch caching. */
 export async function getClimateMonth(latitude: number, longitude: number, month: number) {
-  const key = `${latitude},${longitude},${month}`;
+  const key = `${WEATHER_DATASET},${latitude},${longitude},${month}`;
   const cached = memory.get(key);
   if (cached && cached.expires > Date.now()) {
     memory.delete(key); memory.set(key, cached);

@@ -55,11 +55,11 @@ export function SeasonalTimeline() {
           aria-pressed={item.start === month.start} onClick={() => setDay(item.start)}>{item.short}</button>)}
       </div>
       <div className="timeline-hour">
-        <label htmlFor="seasonal-hour">Hour <output htmlFor="seasonal-hour">{formatHour(hour)}</output></label>
+        <label htmlFor="seasonal-hour">UTC <output htmlFor="seasonal-hour">{formatHour(hour)}</output></label>
         <span aria-hidden="true">00</span>
-        <input id="seasonal-hour" type="range" min="0" max="23" step="1" value={hour} aria-label="Hour of day"
-          aria-valuetext={formatHour(hour)} onChange={(event) => setHour(Number(event.target.value))} />
-        <span aria-hidden="true">23</span>
+        <input id="seasonal-hour" type="range" min="0" max="21" step="3" value={hour} aria-label="Hour of day"
+          aria-valuetext={`${formatHour(hour)} UTC`} onChange={(event) => setHour(Number(event.target.value))} />
+        <span aria-hidden="true">21</span>
         <span className="timeline-calendar-note" title="Yearless 365-day calendar; seasons shown for Europe">365-day calendar · Europe seasons</span>
       </div>
     </section>

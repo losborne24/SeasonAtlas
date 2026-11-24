@@ -30,18 +30,18 @@ def source_dataset(root, year, month):
             with xr.open_dataset(file) as dataset:
                 yield dataset
 
-def reference_pixel(root, output, manifest, day, months, predicate):
+def reference_pixel(root, output, manifest, day, months, predicate, longitude=2.3522, latitude=48.8566, label='Paris'):
     z = manifest['maxzoom']
     n = 2 ** z
-    xglobal = (2.3522 + 180) / 360 * n
-    yglobal = (1 - math.asinh(math.tan(math.radians(48.8566))) / math.pi) / 2 * n
+    xglobal = (longitude + 180) / 360 * n
+    yglobal = (1 - math.asinh(math.tan(math.radians(latitude))) / math.pi) / 2 * n
     x, y = math.floor(xglobal), math.floor(yglobal)
     px, py = math.floor((xglobal - x) * 256), math.floor((yglobal - y) * 256)
     lon = (x + (px + .5) / 256) / n * 360 - 180
     lat = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (y + (py + .5) / 256) / n))))
     west, south = math.floor(lon * 4) / 4, math.floor(lat * 4) / 4
     series = []
-    for year in range(2015, 2025):
+    for year in range(manifest['baseline'][0], manifest['baseline'][1] + 1):
         for month in months:
             with source_dataset(root, year, month) as dataset:
                 data = dataset['t2m']
@@ -49,9 +49,10 @@ def reference_pixel(root, output, manifest, day, months, predicate):
                 dates = data[time].values.astype('datetime64[D]')
                 select = [i for i, date in enumerate(dates) if predicate(str(date))]
                 if select:
-                    block = data.isel({time: select}).sel(latitude=[south, south + .25], longitude=[west, west + .25])
+                    block = data.isel({time: select}).sel(latitude=[south, south + .25], longitude=[west, ((west + .25 + 180) % 360) - 180])
                     series.extend(block.transpose(time, 'latitude', 'longitude').values.astype(float) - 273.15)
-    assert len(series) == 150, f'Expected 150 source days, found {len(series)}'
+    expected_samples = (manifest['baseline'][1] - manifest['baseline'][0] + 1) * 15
+    assert len(series) == expected_samples, f'Expected {expected_samples} source days, found {len(series)}'
     cells = np.mean(series, axis=0)
     wx, wy = (lon - west) / .25, (lat - south) / .25
     temperature = (cells[0, 0] * (1 - wx) * (1 - wy) + cells[0, 1] * wx * (1 - wy) +
@@ -62,7 +63,7 @@ def reference_pixel(root, output, manifest, day, months, predicate):
     with Image.open(output / str(day) / str(z) / str(x) / f'{y}.png') as image:
         actual = np.array(image.getpixel((px, py)))
     assert np.max(np.abs(actual - expected)) <= 1, f'Pixel mismatch: {actual} vs {expected}'
-    print(f'Day {day}: Paris-area pixel matches 150 raw daily records ({temperature:.3f} °C).')
+    print(f'Day {day}: {label}-area pixel matches {expected_samples} raw daily records ({temperature:.3f} °C).')
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -70,10 +71,11 @@ def main():
     parser.add_argument('--directory', type=Path, default=Path('.weather-data/tiles/europe-temperature-v1'))
     args = parser.parse_args()
     manifest = json.loads((args.directory / 'manifest.json').read_text())
-    assert manifest['kind'] == 'era5' and manifest['baseline'] == [2015, 2024]
+    assert manifest['kind'] == 'era5' and manifest['baseline'] in [[2015, 2024], [2020, 2024]]
     assert manifest['windowDays'] == 15 and manifest['timezone'] == 'UTC'
     assert manifest['days'] == list(range(1, 366))
-    assert len(manifest['sourceSha256']) == 120
+    expected_sources = (manifest['baseline'][1] - manifest['baseline'][0] + 1) * 12
+    assert len(manifest['sourceSha256']) == expected_sources
     for name, expected in manifest['sourceSha256'].items():
         digest = hashlib.sha256()
         with (args.raw / name).open('rb') as stream:
@@ -90,7 +92,10 @@ def main():
                 count += 1
     reference_pixel(args.raw, args.directory, manifest, 196, [7], lambda date: 8 <= int(date[-2:]) <= 22)
     reference_pixel(args.raw, args.directory, manifest, 1, [1, 12], lambda date: (date[5:7] == '01' and int(date[-2:]) <= 8) or (date[5:7] == '12' and int(date[-2:]) >= 25))
-    print(f'Validated all {count} tiles, 365 days and 120 unchanged source files.')
+    if manifest['bounds'][0] == -180 and manifest['bounds'][2] == 180:
+        for longitude, latitude, label in [(-74.006, 40.7128, 'New York'), (151.2093, -33.8688, 'Sydney'), (-46.6333, -23.5505, 'São Paulo'), (179.99, 0, 'date line'), (0, 85, 'high Arctic')]:
+            reference_pixel(args.raw, args.directory, manifest, 196, [7], lambda date: 8 <= int(date[-2:]) <= 22, longitude, latitude, label)
+    print(f'Validated all {count} tiles, 365 days and {expected_sources} unchanged source files.')
 
 if __name__ == '__main__':
     main()

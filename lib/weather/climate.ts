@@ -1,7 +1,7 @@
 import { MONTHS, wrapDay } from "../seasonalTime";
 
-export const CLIMATE = { startYear: 2015, endYear: 2024, radius: 7, model: "era5" } as const;
-export const WEATHER_DATASET = `${CLIMATE.model}-${CLIMATE.startYear}-${CLIMATE.endYear}-r${CLIMATE.radius}-v1`;
+export const CLIMATE = { startYear: 2020, endYear: 2024, radius: 7, model: "era5" } as const;
+export const WEATHER_DATASET = `${CLIMATE.model}-${CLIMATE.startYear}-${CLIMATE.endYear}-r${CLIMATE.radius}-utc-v2`;
 export const VARIABLES = ["temperature_2m", "wind_speed_10m", "precipitation"] as const;
 export type Variable = (typeof VARIABLES)[number];
 export type Values = Record<Variable, (number | null)[]>;

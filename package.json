@@ -13,7 +13,11 @@
     "weather:fetch": ".weather-venv/bin/python scripts/weather/fetch.py",
     "weather:build": ".weather-venv/bin/python scripts/weather/build.py",
     "weather:serve": "python3 scripts/weather/serve.py",
-    "weather:check": ".weather-venv/bin/python scripts/weather/check.py"
+    "weather:check": ".weather-venv/bin/python scripts/weather/check.py",
+    "weather:world": ".weather-venv/bin/python scripts/weather/world.py",
+    "weather:install": ".weather-venv/bin/python scripts/weather/install.py",
+    "weather:trial": ".weather-venv/bin/python scripts/weather/arco.py trial",
+    "weather:arco": ".weather-venv/bin/python scripts/weather/arco.py world"
   },
   "dependencies": {
     "maplibre-gl": "6.15.0",

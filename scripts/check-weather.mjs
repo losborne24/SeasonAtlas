@@ -21,7 +21,7 @@ function load(relative) {
   modules.set(file, compiled.exports);
   return compiled.exports;
 }
-const { ClimateAccumulator, validateArchive, monthRanges, VARIABLES } = load('lib/weather/climate.ts');
+const { CLIMATE, ClimateAccumulator, validateArchive, monthRanges, VARIABLES } = load('lib/weather/climate.ts');
 const { MONTHS } = load('lib/seasonalTime.ts');
 function chunk(rows, timezone = 'UTC') {
   return validateArchive({ latitude: 48.75, longitude: 2.25, timezone,
@@ -32,6 +32,12 @@ function chunk(rows, timezone = 'UTC') {
 }
 const point = { latitude: 48.8566, longitude: 2.3522 };
 const index = (atlas, day, hour) => (day - atlas.startDay) * 24 + hour;
+assert.equal(CLIMATE.startYear, 2020); assert.equal(CLIMATE.endYear, 2024);
+const fiveYear = new ClimateAccumulator();
+fiveYear.add(chunk([['2020-07-15T14:00Z', 20, 5, 0]]));
+const fiveYearAtlas = fiveYear.finish(7, point);
+assert.equal(fiveYearAtlas.expectedSamples, 75);
+assert.equal(fiveYearAtlas.baseline.startYear, 2020);
 
 // Ground truth for a ±7-day window: include endpoints, exclude day 8; ignore null, retain zero rainfall.
 const window = new ClimateAccumulator({ startYear: 2020, endYear: 2021 });
@@ -91,3 +97,27 @@ assert.throws(() => validateArchive({}), /Malformed/);
 const invalid = chunk([['2020-01-01T00:00Z', 1, 2, 0]]); invalid.hourly_units.precipitation = 'inch';
 assert.throws(() => validateArchive(invalid), /units/);
 console.log('Weather aggregation: window bounds, reference means, null/zero data, deduplication, leap day, DST, year wrap, baseline bounds and units pass.');
+
+// Real hourly atlases require all eight hours and keep legacy daily URLs working.
+const { validateTemperatureAtlas, temperatureTileUrl, temperatureHour } = load('map/temperature.ts');
+const hourlyAtlas = {
+  version: 1, kind: 'era5', baseline: [2020, 2024], windowDays: 15,
+  statistic: 'hourly_mean', timezone: 'UTC', variable: 'temperature_2m',
+  bounds: [-180, -85.0511287798066, 180, 85.0511287798066], resolutionDegrees: .5,
+  minzoom: 0, maxzoom: 3, days: Array.from({length: 365}, (_,i)=>i+1),
+  hours: [0,3,6,9,12,15,18,21], tileSize: 128, format: 'png',
+  colors: [{value: -30, color:'#4a429b'}, {value:45,color:'#c23b33'}],
+};
+assert.equal(validateTemperatureAtlas(hourlyAtlas).statistic, 'hourly_mean');
+assert.equal(temperatureHour(hourlyAtlas, 14), 12);
+assert.equal(temperatureHour(hourlyAtlas, 21), 21);
+assert.equal(temperatureTileUrl('/weather/example', 196, 3), 'seasonatlas-weather:///weather/example/03/196/{z}/{x}/{y}.png');
+assert.throws(()=>validateTemperatureAtlas({...hourlyAtlas,hours:[0,6,12,18]}));
+assert.throws(()=>validateTemperatureAtlas({...hourlyAtlas,hours:['0',3,6,9,12,15,18,21]}));
+assert.throws(()=>validateTemperatureAtlas({...hourlyAtlas,days:[196]}));
+const dailyAtlas={...hourlyAtlas,statistic:'daily_mean',hours:undefined,resolutionDegrees:.25,tileSize:256};
+assert.equal(validateTemperatureAtlas(dailyAtlas).statistic,'daily_mean');
+assert.equal(temperatureHour(dailyAtlas, 15),null);
+assert.equal(temperatureTileUrl('/weather/legacy',196),'seasonatlas-weather:///weather/legacy/196/{z}/{x}/{y}.png');
+assert.throws(()=>validateTemperatureAtlas({...dailyAtlas,hours:hourlyAtlas.hours}));
+console.log('Hourly atlas: eight validated UTC frames, half-degree resolution, 128px tiles, complete-year requirement and daily compatibility pass.');

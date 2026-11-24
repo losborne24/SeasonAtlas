@@ -4,7 +4,7 @@ An interactive globe of Earth, evolving into the SeasonAtlas weather explorer.
 Explore physical geography, coastlines, rivers, lakes, country borders and terrain.
 Search for a city, select a map location and choose a seasonal day and hour.
 The existing Globebase geography forms the foundation, with historical weather
-averages for selected locations. The local daily-temperature overlay pipeline is documented in
+averages for selected locations. The local three-hour temperature overlay pipeline is documented in
 [local weather setup](docs/local-weather.md); real tiles require a completed CDS download.
 
 ## SeasonAtlas design reference
@@ -223,15 +223,15 @@ on phones the panel sits at the bottom. Close the panel to clear the selection.
 City results include elevation and time zone when supplied by the geocoder.
 
 The bottom seasonal timeline selects a day in a yearless **365-day calendar**
-(no leap day) and a separate **local hour, 00:00–23:00**. Drag either slider, use
+(no leap day) and a separate **UTC hour, every three hours from 00:00–21:00**. Drag either slider, use
 its arrow keys, jump to a month, or step one day backward or forward. The location
 panel reflects the same selected time. Play advances two days per second at 1×;
 2× and 4× increase that rate while retaining the selected hour. Playback wraps
 from 31 December to 1 January, pauses when the tab is hidden, and stops when you
 manually select a day or hour. Season labels use Europe's meteorological seasons.
 The location panel shows historical average temperature, 10 m wind speed and
-preceding-hour precipitation for the selected time. **2015–2024** is the averaging
-period, using the **same local hour across the selected date ±7 days**. These are
+preceding-hour precipitation for the selected time. **2020–2024** is the averaging
+period, using the **same UTC hour across the selected date ±7 days**. These are
 historical model averages, not a current forecast. Expand **About these averages**
 for model resolution, grid coordinates, time zone and the averaging method.
 
@@ -239,7 +239,7 @@ A new location/month loads historical records once; changing the hour or day
 within that month uses the downloaded averages. Playback pauses when an uncached
 month needs data. First lookups may take up to 90 seconds; loading, missing-data
 coverage and retry states appear in the panel. Mobile panels scroll to reveal
-additional details. A separate daily-temperature overlay can be generated and
+additional details. A separate three-hour temperature overlay can be generated and
 served locally; see [local weather setup](docs/local-weather.md). Annual charts
 and additional weather overlays remain future work.
 
@@ -260,15 +260,31 @@ The base globe needs no account, backend, generated biome tiles or API key.
 Mapterhorn elevation tiles load over the network; unavailable elevation does
 not prevent navigation or the local physical geography from rendering.
 
-## Local daily temperature overlay
+## Bundled three-hour temperature overlay
 
-Use `pnpm weather:fetch`, `pnpm weather:build` and `pnpm weather:serve` after
-configuring a free Copernicus account and the isolated Python environment.
-See [the complete local workflow](docs/local-weather.md), including dataset
-licence acceptance and validation. This uses the 2015–2024 baseline and 15-day
-window, but shows **daily UTC mean temperature** rather than a selected hour.
-**Daily temperature** is enabled on startup. Open **Globe settings** for its
-opacity control and legend. Day changes crossfade between complete frames. Generated data stays on this computer; no hosting is configured.
+Use `pnpm weather:trial` for a real one-day sample, then `pnpm weather:arco` for
+worldwide generation. The isolated Python environment is described in
+[the local workflow](docs/local-weather.md). No account or API key is needed:
+temperature chunks come directly from [Google Research’s public ARCO-ERA5 mirror](https://github.com/google-research/arco-era5).
+
+The world build uses **2020–2024**, the selected date **±7 days at the same UTC
+hour**, a **0.5° area-weighted grid**, and eight frames per day (00, 03, 06, 09,
+12, 15, 18 and 21 UTC). The map and location panel share the UTC clock. The panel
+retains its 0.25° point grid, so its value can differ from the spatially averaged overlay.
+Tiles are 128-pixel PNGs through zoom 3; further zooming adds no weather detail.
+
+**Temperature** is enabled on startup. Open **Globe settings** for opacity,
+legend, the displayed frame and data provenance. Day and hour changes crossfade
+between complete frames while loading; failures retain the last frame and expose
+Retry. The existing daily Europe atlas remains active until the complete world
+atlas is validated and installed. Reload the app after installation.
+
+A July trial produced **680 tiles / 7.73 MB**, projecting to **2.82 GB** for a year
+of three-hour frames. Eight source grids were 18.57 MB; the five-year source
+transfer projects to roughly **34 GB**, separate from the shipped atlas. These
+are single-day estimates, not final totals. Progress is in
+`.weather-data/arco/status.json`; downloads and rendering can resume with the same command.
+Only the generated tiles and attribution ship under `public/weather/`.
 
 ## Optional biome colours
 
@@ -334,7 +350,7 @@ Weather timestamps are requested as Unix seconds and converted using the returne
 IANA time zone's historical rules. Repeated daylight-saving hours are averaged
 within each year before averaging across year-day samples; skipped hours and
 null values are excluded, with coverage shown when incomplete. February 29 is
-omitted. January/December smoothing wraps within the same ten baseline years.
+omitted. January/December smoothing wraps within the same five baseline years.
 The baseline, model and window are configured in `lib/weather/climate.ts`.
 
 Weather needs the running Next.js server and network access. Raw date ranges use

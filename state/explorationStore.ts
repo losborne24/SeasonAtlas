@@ -51,14 +51,14 @@ export const useExplorationStore = create<ExplorationState>((set) => ({
   selectedLocation: null,
   selectLocation: (selectedLocation) => set({ selectedLocation }),
   dayOfYear: 196,
-  hour: 14,
+  hour: 15,
   isPlaying: false,
   playbackSpeed: 1,
   setDayOfYear: (day) => {
     if (Number.isFinite(day)) set({ dayOfYear: Math.max(1, Math.min(DAYS_IN_YEAR, Math.round(day))), isPlaying: false });
   },
   setHour: (hour) => {
-    if (Number.isFinite(hour)) set({ hour: Math.max(0, Math.min(23, Math.round(hour))), isPlaying: false });
+    if (Number.isFinite(hour)) set({ hour: Math.max(0, Math.min(21, Math.round(hour / 3) * 3)), isPlaying: false });
   },
   setPlaying: (isPlaying) => set({ isPlaying }),
   setPlaybackSpeed: (playbackSpeed) => {

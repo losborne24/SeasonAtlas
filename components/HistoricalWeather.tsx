@@ -26,13 +26,13 @@ export function HistoricalWeather() {
           return <div key={variable}><dt>{label}</dt><dd>{value === null ? "—" : value.toFixed(digits)} <small>{value === null ? "" : unit}</small></dd></div>;
         })}
       </dl>
-      <p className="weather-method">{data.radius ? `${data.radius * 2 + 1}-day window · same local hour` : "Exact calendar day · same local hour"}</p>
+      <p className="weather-method">{data.radius ? `${data.radius * 2 + 1}-day window · same UTC hour` : "Exact calendar day · same UTC hour"}</p>
       {missing ? <p className="weather-coverage" role="status">No samples for this day and hour.</p> : coverage < data.expectedSamples &&
         <p className="weather-coverage">Incomplete coverage · {coverage}/{data.expectedSamples} year-day samples at minimum.</p>}
       <details className="weather-provenance"><summary>About these averages</summary>
         <p>ERA5 reanalysis · {data.grid.resolution}. Map zoom does not increase weather resolution.</p>
-        <p>Model cell: {data.grid.latitude.toFixed(2)}°, {data.grid.longitude.toFixed(2)}°. Local hour: {data.timezone}.</p>
-        <p>{data.radius ? `Selected date ±${data.radius} days, averaged across the baseline years.` : "Selected calendar date, averaged across the baseline years."} Missing values are excluded; repeated daylight-saving hours are averaged within each year. Leap day is omitted.</p>
+        <p>Model cell: {data.grid.latitude.toFixed(2)}°, {data.grid.longitude.toFixed(2)}°. Time basis: {data.timezone}.</p>
+        <p>{data.radius ? `Selected date ±${data.radius} days, averaged across the baseline years.` : "Selected calendar date, averaged across the baseline years."} Missing values are excluded. UTC keeps the panel and worldwide map on one clock; leap day is omitted.</p>
         <p>Precipitation is the average total in the preceding hour, including dry hours; it is not the probability of rain.</p>
         <p>Temperature at 2 m; wind speed at 10 m. Model grid values, without elevation downscaling.</p>
       </details>
