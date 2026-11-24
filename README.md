@@ -290,6 +290,20 @@ are single-day estimates, not final totals. Progress is in
 `.weather-data/arco/status.json`; downloads and rendering can resume with the same command.
 Only the generated tiles and attribution ship under `public/weather/`.
 
+## Host temperature tiles on Cloudflare Pages Free
+
+The generated worldwide PNG atlas exceeds Pages' file limit. Package the
+existing tiles into one lossless bundle per day/hour, then upload the generated
+static folder separately from the Vercel app:
+
+```sh
+pnpm weather:pages --source public/weather/global-temperature-2020-2024-3hour-05deg-128-v1
+```
+
+The current atlas produces 2,926 files; its largest bundle is 0.78 MiB. Set
+`NEXT_PUBLIC_TEMPERATURE_TILE_URL` to the Pages project's HTTPS origin and
+redeploy the app. See [packaging, validation and upload instructions](docs/cloudflare-temperature.md).
+
 ## Architecture
 
 - `app/`: page shell, metadata, fonts and global styling.

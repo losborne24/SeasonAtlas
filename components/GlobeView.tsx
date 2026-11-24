@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { createTemperaturePackLoader } from "@/map/temperaturePacks";
 
 // MapLibre's internal worker resolution uses a runtime-computed filename that
 // Turbopack cannot statically analyze. Pointing at the worker with a static
@@ -28,6 +29,11 @@ maplibregl.addProtocol("seasonatlas-weather", async (request, controller) => {
   if (!response.ok) throw new Error(`Temperature tile failed (HTTP ${response.status}).`);
   return { data: await response.arrayBuffer(), cacheControl: response.headers.get("cache-control") ?? undefined };
 });
+
+const loadTemperaturePack = createTemperaturePackLoader();
+maplibregl.addProtocol("seasonatlas-weather-pack", async (request, controller) => ({
+  data: await loadTemperaturePack(request.url, controller.signal),
+}));
 
 import {
   createGlobeStyle, viewToCamera,

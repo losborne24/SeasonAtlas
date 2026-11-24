@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map } from "maplibre-gl";
 import { useExplorationStore } from "@/state/explorationStore";
-import { TEMPERATURE_BASE, validateTemperatureAtlas, type TemperatureAtlas } from "@/map/temperature";
+import { TEMPERATURE_BASE, temperatureAtlasBase, validateTemperatureAtlas, type TemperatureAtlas } from "@/map/temperature";
 
 import { TemperatureFrames, type TemperatureFrameStatus } from "@/map/temperatureFrames";
 import { formatHour, formatSeasonalDate } from "@/lib/seasonalTime";
@@ -30,10 +30,10 @@ export function TemperatureOverlay({ map }: { map: Map | null }) {
     void fetch(`${manifestBase.replace(/\/$/, "")}/manifest.json`, {
       signal: AbortSignal.any([controller.signal, AbortSignal.timeout(5000)]),
     }).then(async (response) => {
-      if (!response.ok) throw new Error("Local atlas is not available. Build and serve the ERA5 temperature data first.");
+      if (!response.ok) throw new Error("Temperature atlas is unavailable. Check its hosting URL and redeploy if needed.");
       const metadata = validateTemperatureAtlas(await response.json());
       if (controller.signal.aborted) return;
-      renderer = new TemperatureFrames(map, metadata.tileBase ?? manifestBase, metadata, opacityRef.current, (next) => {
+      renderer = new TemperatureFrames(map, temperatureAtlasBase(manifestBase, metadata), metadata, opacityRef.current, (next) => {
         setStatus(next);
         if (next.error) useExplorationStore.getState().setPlaying(false);
       });
@@ -41,7 +41,7 @@ export function TemperatureOverlay({ map }: { map: Map | null }) {
       setAtlas(metadata);
       renderer.setDay(useExplorationStore.getState().dayOfYear, useExplorationStore.getState().hour);
     }).catch((cause) => {
-      if (!controller.signal.aborted) setError(cause instanceof Error && cause.message !== "Failed to fetch" ? cause.message : "Local atlas is not available. Build and serve the ERA5 temperature data first.");
+      if (!controller.signal.aborted) setError(cause instanceof Error && cause.message !== "Failed to fetch" ? cause.message : "Temperature atlas is unavailable. Check its hosting URL and CORS settings.");
     });
     return () => { controller.abort(); unsubscribe(); renderer?.destroy(); frames.current = null; };
   }, [enabled, map, retry]);

@@ -16,7 +16,9 @@
     "weather:install": ".weather-venv/bin/python scripts/weather/install.py",
     "weather:trial": ".weather-venv/bin/python scripts/weather/arco.py trial",
     "weather:arco": ".weather-venv/bin/python scripts/weather/arco.py world",
-    "weather:annual": ".weather-venv/bin/python scripts/weather/annual.py"
+    "weather:annual": ".weather-venv/bin/python scripts/weather/annual.py",
+    "weather:pages": "python3 scripts/weather/pages.py",
+    "weather:pages:check": "node scripts/check-temperature-packs.mjs"
   },
   "dependencies": {
     "maplibre-gl": "6.15.0",
