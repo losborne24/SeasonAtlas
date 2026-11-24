@@ -78,6 +78,37 @@ pnpm lint
 pnpm build
 ```
 
+## Annual temperature chart
+
+`pnpm weather:annual` builds annual curves from the already-validated
+`.weather-data/arco/work/frames-XX.npy` arrays, without another source download.
+The full `weather:arco` pipeline runs this step automatically before installation.
+It bundles eight half-degree global grids with 12 monthly values per cell under
+`public/weather/annual-temperature-2020-2024-05deg-v1/`. Retain this folder when
+shipping the app alongside the main raster atlas.
+
+Each monthly value averages the month’s 15-day-smoothed seasonal temperatures at
+the same UTC hour. Values are stored as signed little-endian centidegrees, with
+the 12 months adjacent per cell. The binary grids total **49,904,640 bytes**
+(about 50 MB). Generation verifies independent monthly reference values at several
+locations and records checksums; reruns verify and reuse the installed files.
+
+`/api/weather/annual?latitude=48.8566&longitude=2.3522&hour=15` performs four small
+local reads and bilinear interpolation, wrapping longitude at the date line.
+It returns only 12 temperatures. No provider requests occur for annual charts.
+Hour values must be multiples of three from 0 to 21 UTC. Invalid parameters get
+HTTP 400; unavailable assets get HTTP 503 with an explicit retry state in the UI.
+
+The chart’s selected-day marker is interpolated between monthly centres, not a
+daily measurement. Clicking/tapping selects the corresponding day on the timeline.
+Arrow keys step a day, Shift+arrow a week, and Home/End choose the year boundaries.
+Monthly values are also available as labelled buttons. Client caching avoids new
+requests on day changes; city/hour changes clear stale values while loading.
+
+Checks: `node scripts/check-annual.mjs`, typecheck/lint/build, and desktop/mobile
+browser checks. API monthly values were independently compared against the source
+frames at Paris, Sydney, the date line and the North Pole within 0.01 °C rounding.
+
 ## Legacy daily atlas from Copernicus
 
 The point-weather panel uses Open-Meteo. This legacy pipeline builds
@@ -163,8 +194,7 @@ python3 -m venv .weather-venv
 ```
 
 Python 3.9+ is supported. The Python environment, raw data and generated tiles are
-ignored by Git. They are separate from biome inputs and are never bundled into
-Next.js or uploaded by this workflow.
+ignored by Git. They are never bundled into Next.js or uploaded by this workflow.
 
 Create a free [Copernicus account](https://cds.climate.copernicus.eu/), then follow
 [CDS API setup](https://cds.climate.copernicus.eu/en/how-to-api). Put the personal

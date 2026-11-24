@@ -4,6 +4,7 @@ import { formatCoordinates } from "@/lib/locations";
 import { formatHour, formatSeasonalDate } from "@/lib/seasonalTime";
 import { useExplorationStore } from "@/state/explorationStore";
 import { HistoricalWeather } from "@/components/HistoricalWeather";
+import { AnnualTemperatureChart } from "@/components/AnnualTemperatureChart";
 
 export function LocationPanel() {
   const location = useExplorationStore((state) => state.selectedLocation);
@@ -24,6 +25,7 @@ export function LocationPanel() {
       </div>
       <div className="location-selected-time"><span>Selected seasonal time</span><strong>{formatSeasonalDate(day)} · {formatHour(hour)} UTC</strong><small>One shared UTC clock for the worldwide map</small></div>
       <HistoricalWeather />
+      <AnnualTemperatureChart />
       <details className="location-details">
         <summary>Location details</summary>
         <p className="location-detail-coordinates">{formatCoordinates(location.latitude, location.longitude)}</p>

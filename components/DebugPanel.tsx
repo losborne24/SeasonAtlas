@@ -13,7 +13,6 @@ import {
   attachDiagnosticHillshade, DEFAULT_GLOBAL_HILLSHADE_STRENGTH,
   GLOBAL_HILLSHADE_STRENGTH, LOCAL_HILLSHADE_STRENGTH,
 } from "@/map/hillshade";
-import { attachBiomes, BIOME_BASE_URL } from "@/map/biomes";
 import { TemperatureOverlay } from "@/components/TemperatureOverlay";
 
 interface DebugPanelProps {
@@ -28,22 +27,7 @@ export function DebugPanel({ map, terrainWarning, onRetryTerrain }: DebugPanelPr
   const [diagnosticShading, setDiagnosticShading] = useState(true);
   const [hillshadeIntensity, setHillshadeIntensity] = useState(0.25);
   const [globalHillshadeStrength, setGlobalHillshadeStrength] = useState(DEFAULT_GLOBAL_HILLSHADE_STRENGTH);
-  const [biomesEnabled, setBiomesEnabled] = useState(Boolean(BIOME_BASE_URL));
-  const [biomeWarning, setBiomeWarning] = useState("");
   const [urbanEnabled, setUrbanEnabled] = useState(true);
-
-  useEffect(() => {
-    if (!map || !biomesEnabled) return;
-    const controller = new AbortController();
-    let detach: (() => void) | undefined;
-    void attachBiomes(map, controller.signal).then((cleanup) => {
-      if (controller.signal.aborted) cleanup();
-      else { detach = cleanup; setBiomeWarning(""); }
-    }).catch(() => {
-      if (!controller.signal.aborted) setBiomeWarning("Biome tiles unavailable. Showing dark atlas. Toggle to retry.");
-    });
-    return () => { controller.abort(); detach?.(); };
-  }, [map, biomesEnabled]);
 
   useEffect(() => {
     if (!map || !diagnosticShading) return;
@@ -87,12 +71,6 @@ export function DebugPanel({ map, terrainWarning, onRetryTerrain }: DebugPanelPr
           </select>
         </label>
         <p className="mt-2 text-white/40">Mapterhorn · physical elevation</p>
-        <label className="mt-3 flex items-center gap-2">
-          <input type="checkbox" disabled={!BIOME_BASE_URL} checked={biomesEnabled} onChange={(event) => setBiomesEnabled(event.target.checked)} />
-          Biome colours
-        </label>
-        {!BIOME_BASE_URL && <p className="mt-1 text-white/40">Biome colours are not configured.</p>}
-        {biomesEnabled && biomeWarning && <p role="status" className="mt-2 text-amber-200/80">{biomeWarning}</p>}
         <label className="mt-3 flex items-center gap-2">
           <input type="checkbox" checked={diagnosticShading} onChange={(event) => {
             setDiagnosticShading(event.target.checked);

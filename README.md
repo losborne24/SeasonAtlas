@@ -240,15 +240,19 @@ within that month uses the downloaded averages. Playback pauses when an uncached
 month needs data. First lookups may take up to 90 seconds; loading, missing-data
 coverage and retry states appear in the panel. Mobile panels scroll to reveal
 additional details. A separate three-hour temperature overlay can be generated and
-served locally; see [local weather setup](docs/local-weather.md). Annual charts
-and additional weather overlays remain future work.
+served locally; see [local weather setup](docs/local-weather.md). The annual temperature chart shows monthly means at the selected UTC hour, with
+a marker for the selected day. Click the chart to move the timeline, use arrow
+keys for one-day steps (Shift for a week), or Home/End for year boundaries. Its
+monthly values and method are available below the chart. It uses the bundled
+0.5° map averages, so it can differ from the point panel’s native 0.25° values.
+Additional weather overlays remain future work.
 
 Use the **2D / 3D** control at the upper right to switch between a Mercator map
 and the globe. The current location, zoom and layers stay in place; switching
 to 2D also resets tilt and bearing for a north-up map.
 
 **Urban areas** are enabled by default in Globe settings. Muted warm-grey
-settlement footprints fade in between zooms 2 and 5, above biomes and below
+settlement footprints fade in between zooms 2 and 5, above land fills and below
 coastlines, rivers and lakes. These are generalised urban extents, without
 individual buildings or city labels.
 
@@ -256,7 +260,7 @@ individual buildings or city labels.
 scale with zoom above terrain and water. The bundled Natural Earth 1:50m
 boundaries are generalised and reflect the pinned dataset rather than live updates.
 
-The base globe needs no account, backend, generated biome tiles or API key.
+The base globe needs no account, backend or API key.
 Mapterhorn elevation tiles load over the network; unavailable elevation does
 not prevent navigation or the local physical geography from rendering.
 
@@ -286,49 +290,20 @@ are single-day estimates, not final totals. Progress is in
 `.weather-data/arco/status.json`; downloads and rendering can resume with the same command.
 Only the generated tiles and attribution ship under `public/weather/`.
 
-## Optional biome colours
-
-Biome raster tiles are generated offline and served independently of Next.js.
-Set `NEXT_PUBLIC_BIOME_TILE_URL` in `.env.local` to a tile pyramid base URL
-containing `tilejson.json`, then restart development or rebuild for production.
-There is no default biome service or connection to another project's hosting.
-
-To start both the app and local tiles together, use `pnpm dev:biomes` instead.
-This sets the biome URL to `http://127.0.0.1:8766/pnv-v4-global` for that run
-and stops both servers on Ctrl+C. The generated `pnv-v4-global` pyramid must
-already exist under `.biome-data/tiles/`.
-
-Alternatively, serve generated local tiles in a separate terminal:
-
-```sh
-pnpm biomes:serve
-```
-
-Then configure `.env.local`:
-
-```dotenv
-NEXT_PUBLIC_BIOME_TILE_URL=http://localhost:8766/pnv-v4-global
-```
-
-See [global biome generation and hosting](docs/global-biomes.md) for generation,
-licensing and deployment. Missing biome tiles leave the base globe usable.
-Use your own R2 bucket and credentials; the uploader defaults to the local AWS
-profile `globebase-r2`, overridable with `R2_PROFILE`.
-
 ## Architecture
 
 - `app/`: page shell, metadata, fonts and global styling.
 - `components/`: client-only globe lifecycle, navigation hints, globe settings,
   rendering diagnostics and loading/error states.
 - `map/`: MapLibre style, coastline detail, physical terrain, hillshade and
-  optional biome rasters.
+  temperature overlays.
 - `state/explorationStore.ts`: serializable camera and selected-location state.
 - `lib/locations.ts`: city geocoding, suggested cities and coordinate parsing.
 - `lib/seasonalTime.ts`: yearless calendar, season labels and time formatting.
 - `lib/weather/`: validated ERA5 records, DST-aware averaging and bounded caches.
 - `app/api/weather/`: historical monthly weather endpoint.
 - `public/geo/`: locally hosted Natural Earth geography and vector tiles.
-- `scripts/`: reproducible geography preparation, biome generation and checks.
+- `scripts/`: reproducible geography preparation, weather generation and checks.
 
 MapLibre owns the globe and WebGL lifecycle. Its worker is emitted as a bundled
 asset through a static `new URL(...)` reference. Runtime renderer objects stay
@@ -390,9 +365,7 @@ are in the vendored data notes.
 
 Mapterhorn supplies remote Terrarium elevation tiles through native zoom 12,
 with attribution retained in the map. Terrain defaults to 1× elevation.
-Optional OpenLandMap potential natural vegetation tiles retain their ODbL
-notices and attribution. These describe vegetation potential, not observed
-current land cover. The geography is a static physical baseline.
+The geography is a static physical baseline.
 
 ## Validation
 
@@ -405,18 +378,14 @@ node scripts/check-hillshade.mjs
 node scripts/check-weather.mjs
 ```
 
-`node scripts/check-biomes.mjs` additionally validates a generated biome pyramid
-when local tiles are available.
-
 ## Limits
 
 Natural Earth coastlines and water are generalized, even at regional zoom.
-They may not match the elevation surface exactly. Biome resolution is limited
-by source data and the generated pyramid. Elevation and configured biome
-services need network access. WebGL 2 is required; an explanatory fallback is
+They may not match the elevation surface exactly. Elevation services need
+network access. WebGL 2 is required; an explanatory fallback is
 shown when unavailable. Rendering diagnostics are shown on wider screens.
 
-The documents in `docs/` retain earlier terrain and biome implementation
+The documents in `docs/` retain earlier terrain implementation
 records, including observations of interface features that have since been
 removed. The current-application sections of this README describe the existing application;
 the SeasonAtlas development plan describes intended future work.

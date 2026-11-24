@@ -4,8 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:biomes": "node scripts/dev-biomes.mjs",
-    "biomes:serve": "python3 scripts/biomes/serve.py",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
@@ -17,7 +15,8 @@
     "weather:world": ".weather-venv/bin/python scripts/weather/world.py",
     "weather:install": ".weather-venv/bin/python scripts/weather/install.py",
     "weather:trial": ".weather-venv/bin/python scripts/weather/arco.py trial",
-    "weather:arco": ".weather-venv/bin/python scripts/weather/arco.py world"
+    "weather:arco": ".weather-venv/bin/python scripts/weather/arco.py world",
+    "weather:annual": ".weather-venv/bin/python scripts/weather/annual.py"
   },
   "dependencies": {
     "maplibre-gl": "6.15.0",

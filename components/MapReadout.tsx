@@ -3,7 +3,6 @@
 import { useCallback, useSyncExternalStore } from "react";
 import type { Map } from "maplibre-gl";
 import { COAST_DETAIL_STATE, TERRAIN_SOURCE } from "@/map/mapStyle";
-import { BIOME_SOURCE } from "@/map/biomes";
 import { HILLSHADE_SOURCE } from "@/map/hillshade";
 
 /** Native tile zoom MapLibre requests at screen centre; "↑" once it overzooms past maxzoom. */
@@ -30,7 +29,7 @@ export function MapReadout({ map }: { map: Map | null }) {
     if (!map) return "";
     const detail = Number(map.getGlobalState()[COAST_DETAIL_STATE] ?? 0);
     const lod = detail <= 0 ? "Base" : detail >= 1 ? "Regional" : `Blend ${Math.round(detail * 100)}%`;
-    return `Zoom ${map.getZoom().toFixed(2)} · Coast LOD ${lod} · Biome ${tileZoom(map, BIOME_SOURCE)} · Hillshade ${tileZoom(map, HILLSHADE_SOURCE)} · Mesh ${map.getTerrain() ? tileZoom(map, TERRAIN_SOURCE, true) : "off"}`;
+    return `Zoom ${map.getZoom().toFixed(2)} · Coast LOD ${lod} · Hillshade ${tileZoom(map, HILLSHADE_SOURCE)} · Mesh ${map.getTerrain() ? tileZoom(map, TERRAIN_SOURCE, true) : "off"}`;
   }, [map]);
 
   const readout = useSyncExternalStore(subscribe, getSnapshot, () => "");

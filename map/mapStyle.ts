@@ -213,6 +213,19 @@ export function createGlobeStyle(): StyleSpecification {
           "fill-opacity": ["interpolate", ["linear"], ["zoom"], 2, 0, 3, 0.12, 5, 0.3],
         },
       },
+      // All surface fills stay beneath weather; outlines remain above it.
+      {
+        id: "lakes",
+        type: "fill",
+        source: "physical-lakes",
+        filter: ["<=", ["get", "min_zoom"], ["zoom"]],
+        paint: {
+          "fill-color": palette.inlandWater,
+          // 1:50m rings are coarse, so globally the fill stays quiet and only
+          // firms up once a lake is large enough on screen to be read as one.
+          "fill-opacity": ["interpolate", ["linear"], ["zoom"], 0, 0.55, 3, 0.75, 5, 0.9],
+        },
+      },
       {
         id: "coastline",
         type: "line",
@@ -255,18 +268,6 @@ export function createGlobeStyle(): StyleSpecification {
           // rather than by blur, which erases a line this thin outright.
           "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.25, 4, 0.55, 8, 0.95],
           "line-opacity": ["interpolate", ["linear"], ["zoom"], 0, 0.35, 4, 0.65, 8, 0.8],
-        },
-      },
-      {
-        id: "lakes",
-        type: "fill",
-        source: "physical-lakes",
-        filter: ["<=", ["get", "min_zoom"], ["zoom"]],
-        paint: {
-          "fill-color": palette.inlandWater,
-          // 1:50m rings are coarse, so globally the fill stays quiet and only
-          // firms up once a lake is large enough on screen to be read as one.
-          "fill-opacity": ["interpolate", ["linear"], ["zoom"], 0, 0.55, 3, 0.75, 5, 0.9],
         },
       },
       {

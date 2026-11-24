@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SeasonAtlas — explore Earth",
   description:
-    "Explore the world on an interactive 3D globe with physical geography, natural biomes, and terrain.",
+    "Explore the world on an interactive 3D globe with physical geography, seasonal temperatures, and terrain.",
 };
 
 export const viewport: Viewport = {

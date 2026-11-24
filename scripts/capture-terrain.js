@@ -13,7 +13,6 @@ window.captureTerrain = async (name, camera) => {
     hillshade: map.getStyle().layers.find(layer => layer.id === 'terrain-diagnostic'),
     shadingState: map.getGlobalState(),
     globalOceanMask: map.getStyle().layers.find(layer => layer.id === 'hillshade-ocean-mask'),
-    tiles: map.getSource('natural-biomes')?.serialize().tiles,
     viewportPixels: [map.getCanvas().width, map.getCanvas().height],
   };
   await new Promise(resolve => {

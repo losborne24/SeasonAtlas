@@ -64,3 +64,27 @@
 @media (max-width: 767px) {
   .season-explorer .globe-settings { max-height: calc(100dvh - 148px - var(--timeline-clearance)); }
 }
+
+.annual-temperature { margin-top: 16px; border-top: 1px solid #a3d5ff24; padding-top: 14px; }
+.annual-subtitle { margin-top: 8px; color: #b5aadf; font-size: 10px; }
+.annual-plot { margin-top: 8px; border-radius: 10px; cursor: crosshair; }
+.annual-plot:focus-visible { outline: 2px solid #a598ff; outline-offset: 3px; }
+.annual-plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.annual-grid { stroke: #b3d4f020; stroke-width: 1; }
+.annual-axis { fill: #a9c2d5; font-size: 9px; font-family: inherit; }
+.annual-month { font-size: 8px; }
+.annual-line { stroke: #b2a4ff; stroke-width: 2.3; stroke-linejoin: round; stroke-linecap: round; }
+.annual-dot { fill: #d7cfff; stroke: #9b86f1; stroke-width: 1; }
+.annual-marker { stroke: #dbf6ff; stroke-width: 1; stroke-dasharray: 3 3; opacity: .7; }
+.annual-selected { fill: #f2edff; stroke: #9180f5; stroke-width: 2; }
+.annual-selected-date { color: #d6d2ed; font-size: 10px; margin-top: 2px; }
+.annual-help { color: #8fabbe; font-size: 9px; margin-top: 5px; }
+.annual-status { color: #b4c9dc; font-size: 11px; padding: 16px 0; }
+.annual-details { color: #9eb8cc; font-size: 10px; margin-top: 8px; line-height: 1.6; }
+.annual-details summary { cursor: pointer; padding: 5px 0; }
+.annual-details p { margin-top: 6px; }
+.annual-month-values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 10px; }
+.annual-month-values button { text-align: left; padding: 7px; background: #a598ff0c; border: 1px solid #a598ff25; border-radius: 7px; cursor: pointer; }
+.annual-month-values button:hover { background: #a598ff20; }
+.annual-month-values span, .annual-month-values strong { display: block; }
+.annual-month-values strong { font-weight: 500; color: #ded8ff; white-space: nowrap; }

@@ -1,5 +1,8 @@
 # Global terrain relief visibility
 
+Historical implementation and validation report. The optional biome layer and
+its processing pipeline have since been removed; the terrain relief remains.
+
 The existing native MapLibre hillshade is sufficient for this pass. Removing
 its z6 gate and testing contrast at 0.55 made broad ranges readable without a
 precomputed Mapterhorn relief texture or another renderer. Mapterhorn's native
@@ -133,7 +136,7 @@ DEM availability is made.
 The final contact sheet (`final.png`) and per-zoom PNGs (`final-z*.png`) are
 kept locally in ignored `.biome-data/review/global-relief/`, outside Git and
 the production build. Earlier trial captures are retained separately.
-For repeatable full-resolution captures, paste `scripts/biomes/capture.js`
+For repeatable full-resolution captures, paste `scripts/capture-terrain.js`
 into the local app's DevTools and call `captureTerrain(name, camera)` with the
 coordinates and zoom levels above. It records the actual hillshade expression,
 mask, global debug state and physical terrain alongside the render.
@@ -146,8 +149,7 @@ mask, global debug state and physical terrain alongside the render.
   brief regional loads do not re-show the coarse mask, while a sustained gap
   still is covered; all 85 global tiles decode; mountain,
   island, ocean, dateline and polar samples; installed overzoom renderer test.
-- `node scripts/check-biomes.mjs` and `node scripts/check-geography.mjs`:
-  existing geography, biome attachment/fallback, coastline and layer ordering.
+- `node scripts/check-geography.mjs`: existing geography, coastline and layer ordering.
 - `pnpm typecheck`, `pnpm lint`, `pnpm exec next build --webpack`.
 - Browser: global slider increments/decrements and restoration to 0.55;
   hillshade checkbox removes/restores shading; ocean stays dark and fine

@@ -267,6 +267,8 @@ def world(workers=4):
         (output / 'NOTICE.txt').write_text('Modified Copernicus ERA5 information via Google Research ARCO-ERA5, CC BY 4.0.\n'
             '2020–2024, same UTC hour across selected date ±7 days; 75 samples per cell.\n'
             '0.5° area-weighted spatial average; February 29 excluded. Raster interpolation adds no weather detail.\n')
+        from annual import build_annual
+        build_annual()
         install(output)
         atomic_json(ROOT / 'status.json', {'stage': 'ready', 'tileBytes': size, 'tileBase': '/weather/' + NAME})
 
