@@ -18,6 +18,8 @@
     "weather:arco": ".weather-venv/bin/python scripts/weather/arco.py world",
     "weather:annual": ".weather-venv/bin/python scripts/weather/annual.py",
     "weather:pages": "python3 scripts/weather/pages.py",
+    "weather:pages:annual": "python3 scripts/weather/pages_annual.py",
+    "weather:pages:annual:check": "node scripts/check-annual-pages.mjs",
     "weather:pages:check": "node scripts/check-temperature-packs.mjs"
   },
   "dependencies": {

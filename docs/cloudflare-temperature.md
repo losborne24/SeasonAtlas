@@ -35,6 +35,21 @@ folder together. Changing the PNG payload changes that directory's name.
 
 ## Verify before upload
 
+To host the annual chart in the same project, add its generated data to the
+existing upload folder:
+
+```sh
+pnpm weather:pages:annual
+pnpm weather:pages:annual:check
+```
+
+This reads `public/weather/annual-temperature-2020-2024-05deg-v1/`. Override
+`--source` and `--output` if needed. It verifies the original SHA-256 checksums
+and splits each of eight hourly grids into 361 latitude rows, preserving every
+encoded value. It adds 2,890 files and 49.9 MB: the combined site has **5,816
+files and 2.31 GB**. Each row is 17,280 bytes, safely below the asset-size limit.
+The annual command is safe to rerun against the same unchanged input.
+
 ```sh
 pnpm weather:pages:check .weather-data/pages-temperature public/weather/global-temperature-2020-2024-3hour-05deg-128-v1
 pnpm typecheck
@@ -93,10 +108,22 @@ zoomed into one region; the browser retains at most four completed bundles
 within a 32 MiB cache. Obsolete downloads abort when no visible tile needs them.
 Failed bundles remain retryable and the existing frame stays displayed on error.
 
-This publishes the **raster temperature overlay**. The annual-chart API still
-reads its separate monthly `.bin` dataset from the app's local filesystem, and
-the point-weather API still calls its existing provider. Neither is configured
-by `NEXT_PUBLIC_TEMPERATURE_TILE_URL`.
+When `NEXT_PUBLIC_TEMPERATURE_TILE_URL` is set, the annual chart uses the same
+Pages origin: `/annual-manifest.json` points to content-versioned latitude
+rows. The browser downloads at most two rows (34,560 bytes) for a location and
+interpolates its twelve monthly means with the same pole-clamping and longitude
+wrap as the local API. Up to 32 successful rows are cached. No Pages Function or
+Vercel annual-data API is used in this mode. Without the environment variable,
+the existing local annual API continues to read the original `.bin` files.
+
+After adding annual data, redeploy the **whole** upload folder with the same
+Wrangler command. Publishing only the annual subfolder would replace the tile
+deployment and remove the map overlays. Redeploy the updated Vercel code too;
+the existing environment variable stays the same. Check `/annual-manifest.json`
+on Pages, then click a map location and change UTC hour to verify the chart.
+
+The separate point-weather API still calls its existing provider; it is not
+configured by `NEXT_PUBLIC_TEMPERATURE_TILE_URL`.
 
 ## Bundle format
 

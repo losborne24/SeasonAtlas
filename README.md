@@ -298,9 +298,11 @@ static folder separately from the Vercel app:
 
 ```sh
 pnpm weather:pages --source public/weather/global-temperature-2020-2024-3hour-05deg-128-v1
+pnpm weather:pages:annual
 ```
 
-The current atlas produces 2,926 files; its largest bundle is 0.78 MiB. Set
+The current atlas produces 2,926 files; its largest bundle is 0.78 MiB. Adding
+annual-chart data brings the total to 5,816 files and 2.31 GB. Set
 `NEXT_PUBLIC_TEMPERATURE_TILE_URL` to the Pages project's HTTPS origin and
 redeploy the app. See [packaging, validation and upload instructions](docs/cloudflare-temperature.md).
 

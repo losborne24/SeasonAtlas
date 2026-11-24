@@ -4,8 +4,11 @@ import { useEffect, useId, useState, type KeyboardEvent } from "react";
 import { ANNUAL_DATASET, MONTH_CENTRES, annualValue, type AnnualTemperature } from "@/lib/weather/annual";
 import { formatHour, formatSeasonalDate, MONTHS } from "@/lib/seasonalTime";
 import { useExplorationStore } from "@/state/explorationStore";
+import { createAnnualPagesLoader } from "@/lib/weather/annualPages";
 
 const cache = new Map<string, AnnualTemperature>();
+const pagesBase = process.env.NEXT_PUBLIC_TEMPERATURE_TILE_URL;
+const loadAnnualPages = createAnnualPagesLoader();
 type Result = { key: string; data?: AnnualTemperature; error?: string };
 const W = 312, H = 180, LEFT = 32, RIGHT = 8, TOP = 12, BOTTOM = 30;
 const x = (day: number) => LEFT + (day - 1) / 364 * (W - LEFT - RIGHT);
@@ -30,11 +33,14 @@ export function AnnualTemperatureChart() {
       const cached = cache.get(key);
       if (cached) { setResult({ key, data: cached }); return; }
       const params = new URLSearchParams({ latitude: String(latitude), longitude: String(longitude), hour: String(hour) });
-      void fetch(`/api/weather/annual?${params}`, {
-        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(8000)]),
-      }).then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Annual temperatures could not be loaded.");
+      const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(8000)]);
+      const request = pagesBase ? loadAnnualPages(pagesBase, latitude, longitude, hour, signal) :
+        fetch(`/api/weather/annual?${params}`, { signal }).then(async (response) => {
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "Annual temperatures could not be loaded.");
+          return data;
+        });
+      void request.then((data) => {
         if (data.version !== 1 || data.hourUTC !== hour || data.baseline?.[0] !== 2020 || data.baseline?.[1] !== 2024 ||
           data.resolutionDegrees !== .5 || !Array.isArray(data.monthly) || data.monthly.length !== 12 ||
           data.monthly.some((value: unknown) => value !== null && (typeof value !== "number" || !Number.isFinite(value) || value < -120 || value > 80))) {
